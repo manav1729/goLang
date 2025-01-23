@@ -49,20 +49,34 @@ func AddNewToDoItem(currentItems []ToDoItem, header string, desc string) []ToDoI
 }
 
 func UpdateToDoItem(currentItems []ToDoItem, id int, header string, desc string) []ToDoItem {
+	success := false
 	for index, item := range currentItems {
 		if item.ItemId == id {
 			currentItems[index].Header = header
 			currentItems[index].Description = desc
+			success = true
 		}
+	}
+	if success {
+		fmt.Println("================================== To-Do Item updated ====================================")
+	} else {
+		fmt.Println("================================ To-Do Item not updated ==================================")
 	}
 	return currentItems
 }
 
 func RemoveToDoItem(currentItems []ToDoItem, deleteItemId int) []ToDoItem {
+	success := false
 	for index, item := range currentItems {
 		if item.ItemId == deleteItemId {
 			currentItems = append(currentItems[:index], currentItems[index+1:]...)
+			success = true
 		}
+	}
+	if success {
+		fmt.Println("================================== To-Do Item deleted ====================================")
+	} else {
+		fmt.Println("================================ To-Do Item not deleted ==================================")
 	}
 	return currentItems
 }

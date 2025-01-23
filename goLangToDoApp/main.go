@@ -32,11 +32,9 @@ func main() {
 	} else if *update && *id != 0 {
 		// Update a To-Do Item
 		items = toDoUtil.UpdateToDoItem(items, *id, *header, *desc)
-		fmt.Println("================================== To-Do Item updated ====================================")
 	} else if *remove && *id != 0 {
 		// Delete a To-Do Item
 		items = toDoUtil.RemoveToDoItem(items, *id)
-		fmt.Println("=================================== To-Do Item deleted ====================================")
 	} else if *removeAll {
 		// Delete all To-Do Item(s)
 		items = nil
