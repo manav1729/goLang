@@ -1,4 +1,5 @@
 **GO Academy**
+
 This project is to create a to-do app which allows users to create a list of to-do tasks. It is intended for you to use a range of different techniques and features of Golang and tasks followed from top to bottom, building up the application as you go. Don't be afraid to set aside your design at the end of a step if the next step would require massive refactor - it is often simpler to design an application from a clean page and copy in useful code.
 
 A to-do item should include a description and a status of "not started", "started", or "completed". Users should be able to display a list of all to-do items including their statuses, and should be able to update a to-do item to change its status or delete it entirely. Feel free to add any additional functionality if you want.
