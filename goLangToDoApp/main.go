@@ -9,7 +9,7 @@ import (
 const fileName = "./toDoUtil/ToDoAppData.json"
 
 func main() {
-	fmt.Println("==================== Welcome to Manwendra's TO-DO List Application. =======================")
+	fmt.Println("==================== Welcome to Manwendra's To-Do List Application. =======================")
 
 	add := flag.Bool("add", false, "Add a new To-Do Item to List")
 	update := flag.Bool("update", false, "Update a To-Do Item")
