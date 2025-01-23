@@ -32,40 +32,44 @@ func main() {
 
 	flag.Parse()
 
-	// Load All To Do Items from file
+	// Load All To-Do Items from file
 	items := GetAllToDoItems(fileName)
 	if items == nil {
 		fmt.Println("============================== No To-Do Items in the List =================================")
 	}
 
-	// List
+	// List all the To-Do Items
 	if *list {
 		if items != nil {
 			PrintToDoItems(items)
 		}
 	}
 
+	// Add a new To-Do Item
 	if *add {
 		items = AddNewToDoItem(items, *header, *desc)
 		fmt.Println("=========================== New To-Do Item added to the List ==============================")
 	}
 
+	// Update a To-Do Item
 	if *update && *id != 0 {
 		items = UpdateToDoItem(items, ToDoItem{*id, *header, *desc})
 		fmt.Println("================================== To-Do Item updated ====================================")
 	}
 
+	// Delete a To-Do Item
 	if *remove && *id != 0 {
 		items = RemoveToDoItem(items, *id)
 		fmt.Println("=================================== To-Do Item removed ====================================")
 	}
 
+	// Delete all To-Do Item(s)
 	if *removeAll {
 		items = nil
 		fmt.Println("================================ All To-Do Item(s) removed ================================")
 	}
 
-	// Save All To Do Items to file
+	// Save All To-Do Items to file
 	err := SaveAllToDoItems(items)
 	if err != nil {
 		fmt.Println("==========> Error saving file:", fileName, err)
@@ -74,34 +78,25 @@ func main() {
 
 func PrintFlagInstructions() {
 	fmt.Println("======================== Use following flags for various operations =======================")
+	fmt.Println("-list to \"Print all To-Do Items in the List\"")
 	fmt.Println("-add -header=<name> -desc <description> to \"Add a new To-Do Item\"")
 	fmt.Println("-update -id=<itemId> -header=<name> -desc <description> to \"Update a To-Do Item\"")
 	fmt.Println("-remove -id=<itemId> to \"Delete a To-Do Item\"")
 	fmt.Println("-removeAll to \"Delete all To-Do Items\"")
-	fmt.Println("-list to \"Print all To-Do Items in the List\"")
 	fmt.Println("===========================================================================================")
 }
 
-func GetAllToDoItems(fileName string) []ToDoItem {
-	// Open json file
-	byteValue := OpenToDoItemsFile(fileName)
-	if byteValue != nil {
-		// Parse the json file to ToDoItems
-		items := UnMarshalToDoItems(byteValue)
-		if items != nil {
-			return items
+func PrintToDoItems(items []ToDoItem) {
+	fmt.Println("================================== Your To-Do Task Items ==================================")
+	//fmt.Println(items)
+	for index, item := range items {
+		if index != 0 {
+			fmt.Println("-------------------------------------------------------------------------------------------")
 		}
+		fmt.Printf("%d. %s\n", item.ItemId, item.Header)
+		fmt.Println(item.Description)
 	}
-	return nil
-}
-
-func SaveAllToDoItems(allItems []ToDoItem) error {
-	// Open json file
-	data, err := json.MarshalIndent(allItems, "", "\t")
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(fileName, data, 0644)
+	fmt.Println("===========================================================================================")
 }
 
 func AddNewToDoItem(currentItems []ToDoItem, header string, desc string) []ToDoItem {
@@ -132,42 +127,38 @@ func RemoveToDoItem(currentItems []ToDoItem, deleteItemId int) []ToDoItem {
 	return currentItems
 }
 
-func OpenToDoItemsFile(fileName string) []byte {
+func SaveAllToDoItems(allItems []ToDoItem) error {
+	// Open json file
+	data, err := json.MarshalIndent(allItems, "", "\t")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(fileName, data, 0644)
+}
+
+func GetAllToDoItems(fileName string) []ToDoItem {
 	// Open local json file
 	jsonFile, err := os.Open(fileName)
 	if err != nil {
-		fmt.Println("==========> Error opening file:", fileName, err)
+		fmt.Println("==========> Error Opening file:", fileName, err)
 	} else {
 		byteValue, err := ioutil.ReadAll(jsonFile)
 		if err != nil {
-			fmt.Println("==========> Error reading file:", fileName, err)
+			fmt.Println("==========> Error Reading file:", fileName, err)
 		} else {
-			return byteValue
+			if byteValue != nil {
+				// Parse the json file to ToDoItems
+				var items []ToDoItem
+				err := json.Unmarshal(byteValue, &items)
+				if err != nil {
+					fmt.Println("==========> Error Unmarshalling file:", err)
+				} else {
+					if items != nil {
+						return items
+					}
+				}
+			}
 		}
 	}
 	return nil
-}
-
-func UnMarshalToDoItems(byteValue []byte) []ToDoItem {
-	var items []ToDoItem
-	err := json.Unmarshal(byteValue, &items)
-	if err != nil {
-		fmt.Println("==========> Error Unmarshalling file:", err)
-	} else {
-		return items
-	}
-	return nil
-}
-
-func PrintToDoItems(items []ToDoItem) {
-	fmt.Println("================================== Your To-Do Task Items ==================================")
-	//fmt.Println(items)
-	for index, item := range items {
-		if index != 0 {
-			fmt.Println("-------------------------------------------------------------------------------------------")
-		}
-		fmt.Printf("%d. %s\n", item.ItemId, item.Header)
-		fmt.Println(item.Description)
-	}
-	fmt.Println("===========================================================================================")
 }
