@@ -10,7 +10,6 @@ const fileName = "./toDoUtil/ToDoAppData.json"
 
 func main() {
 	fmt.Println("==================== Welcome to Manwendra's TO-DO List Application. =======================")
-	toDoUtil.PrintFlagInstructions()
 
 	list := flag.Bool("list", false, "List all To-Do Items in List")
 	add := flag.Bool("add", false, "Add a new To-Do Item to List")
@@ -30,35 +29,30 @@ func main() {
 		fmt.Println("============================== No To-Do Items in the List =================================")
 	}
 
-	// List all the To-Do Items
 	if *list {
-		if items != nil {
-			toDoUtil.PrintToDoItems(items)
-		}
-	}
-
-	// Add a new To-Do Item
-	if *add {
+		// List all the To-Do Items
+		toDoUtil.PrintToDoItems(items)
+	} else if *add {
+		// Add a new To-Do Item
 		items = toDoUtil.AddNewToDoItem(items, *header, *desc)
+		toDoUtil.PrintToDoItems(items)
 		fmt.Println("=========================== New To-Do Item added to the List ==============================")
-	}
-
-	// Update a To-Do Item
-	if *update && *id != 0 {
+	} else if *update && *id != 0 {
+		// Update a To-Do Item
 		items = toDoUtil.UpdateToDoItem(items, *id, *header, *desc)
+		toDoUtil.PrintToDoItems(items)
 		fmt.Println("================================== To-Do Item updated ====================================")
-	}
-
-	// Delete a To-Do Item
-	if *remove && *id != 0 {
+	} else if *remove && *id != 0 {
+		// Delete a To-Do Item
 		items = toDoUtil.RemoveToDoItem(items, *id)
+		toDoUtil.PrintToDoItems(items)
 		fmt.Println("=================================== To-Do Item deleted ====================================")
-	}
-
-	// Delete all To-Do Item(s)
-	if *removeAll {
+	} else if *removeAll {
+		// Delete all To-Do Item(s)
 		items = nil
 		fmt.Println("================================ All To-Do Item(s) deleted ================================")
+	} else {
+		toDoUtil.PrintFlagInstructions()
 	}
 
 	// Save All To-Do Items to file

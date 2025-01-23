@@ -28,32 +28,32 @@ Further work:
 These tasks are designed to provide you with exercises beyond the end of the the academy course and are more complicated/involved, with less explanation as to how to execute them:
 
 - Repl (Read-eval-print loop)
-When the application runs it should ask the user to input text into the console to create, read, update, or delete list items in a loop.
+  When the application runs it should ask the user to input text into the console to create, read, update, or delete list items in a loop.
 
 - Multiple startups:
-Separate the cli, repl, and api functionality into separate main packages in different modules so that the application can be run as a cli OR a repl OR an api OR all of them together.
+  Separate the cli, repl, and api functionality into separate main packages in different modules so that the application can be run as a cli OR a repl OR an api OR all of them together.
 
 - Multi User
-The API should include a user ID and support multiple users, each with their own to-do list.
+  The API should include a user ID and support multiple users, each with their own to-do list.
 
 - No interfaces or receivers
-Remove all interfaces or receiver functions from your application and instead use the static-singleton pattern.
+  Remove all interfaces or receiver functions from your application and instead use the static-singleton pattern.
 
 - Graceful shutdown
-When the interrupt signal is sent to the application, it stops accepting incoming http requests and finishes resolving all open http requests before shutting down.
+  When the interrupt signal is sent to the application, it stops accepting incoming http requests and finishes resolving all open http requests before shutting down.
 
 - Publish modules
-Ensure the core todo store logic is in a self contain module and publish V1 to github, then use the published module in the application entry points rather than local one.
+  Ensure the core todo store logic is in a self contain module and publish V1 to github, then use the published module in the application entry points rather than local one.
 
 - Benchmark
-Use benchmark unit tests to determine the performance of your application. Run a separate application to bombard your code with requests and evaluate the performance.
+  Use benchmark unit tests to determine the performance of your application. Run a separate application to bombard your code with requests and evaluate the performance.
 
 - pprof
-Use the pprof utility to profile application performance.
+  Use the pprof utility to profile application performance.
 
 - Sharding
-Split the todo store "back end" module into a separate executable to the "front end" api/cli/repl/web server, run multiple instances of the back end and distribute traffic from the front end using ring hashing.
+  Split the todo store "back end" module into a separate executable to the "front end" api/cli/repl/web server, run multiple instances of the back end and distribute traffic from the front end using ring hashing.
 
 - GRPC
-Enable communication between front end and back end with GRPC.
-Collapse
+  Enable communication between front end and back end with GRPC.
+  Collapse

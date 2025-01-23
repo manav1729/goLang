@@ -15,11 +15,11 @@ type ToDoItem struct {
 
 func PrintFlagInstructions() {
 	fmt.Println("======================== Use following flags for various operations =======================")
-	fmt.Println("-list												to \"Print all To-Do Items in the List\"")
-	fmt.Println("-add -header=<name> -desc <description> 						 to \"Add a new To-Do Item\"")
-	fmt.Println("-update -id=<itemId> -header=<name> -desc <description> 		  to \"Update a To-Do Item\"")
-	fmt.Println("-remove -id=<itemId> 											  to \"Delete a To-Do Item\"")
-	fmt.Println("-removeAll													 to \"Delete all To-Do Item(s)\"")
+	fmt.Println("-list to \"Print all To-Do Items in the List\"")
+	fmt.Println("-add -header=<name> -desc <description> to \"Add a new To-Do Item\"")
+	fmt.Println("-update -id=<itemId> -header=<name> -desc <description> to \"Update a To-Do Item\"")
+	fmt.Println("-remove -id=<itemId> to \"Delete a To-Do Item\"")
+	fmt.Println("-removeAll to \"Delete all To-Do Item(s)\"")
 	fmt.Println("===========================================================================================")
 }
 
