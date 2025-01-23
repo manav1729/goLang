@@ -15,7 +15,6 @@ type ToDoItem struct {
 
 func PrintFlagInstructions() {
 	fmt.Println("======================== Use following flags for various operations =======================")
-	fmt.Println("-list to \"Print all To-Do Items in the List\"")
 	fmt.Println("-add -header=<name> -desc <description> to \"Add a new To-Do Item\"")
 	fmt.Println("-update -id=<itemId> -header=<name> -desc <description> to \"Update a To-Do Item\"")
 	fmt.Println("-remove -id=<itemId> to \"Delete a To-Do Item\"")
@@ -24,16 +23,20 @@ func PrintFlagInstructions() {
 }
 
 func PrintToDoItems(items []ToDoItem) {
-	fmt.Println("================================== Your To-Do Task Items ==================================")
-	//fmt.Println(items)
-	for index, item := range items {
-		if index != 0 {
-			fmt.Println("-------------------------------------------------------------------------------------------")
+	if items != nil && len(items) > 0 {
+		fmt.Println("================================== Your To-Do Task Items ==================================")
+		//fmt.Println(items)
+		for index, item := range items {
+			if index != 0 {
+				fmt.Println("-------------------------------------------------------------------------------------------")
+			}
+			fmt.Printf("%d. %s\n", item.ItemId, item.Header)
+			fmt.Println(item.Description)
 		}
-		fmt.Printf("%d. %s\n", item.ItemId, item.Header)
-		fmt.Println(item.Description)
+		fmt.Println("===========================================================================================")
+	} else {
+		fmt.Println("============================== No To-Do Items in the List =================================")
 	}
-	fmt.Println("===========================================================================================")
 }
 
 func AddNewToDoItem(currentItems []ToDoItem, header string, desc string) []ToDoItem {
@@ -90,7 +93,7 @@ func GetAllToDoItems(fileName string) []ToDoItem {
 				if err != nil {
 					fmt.Println("==========> Error Unmarshalling file:", err)
 				} else {
-					if items != nil {
+					if items != nil && len(items) > 0 {
 						return items
 					}
 				}
