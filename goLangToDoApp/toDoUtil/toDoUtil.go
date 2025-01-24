@@ -5,10 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log/slog"
 	"os"
 )
 
 const fileName = "./toDoUtil/ToDoAppData.json"
+
+var logger *slog.Logger
+
+func initLogger() {
+	logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+}
 
 type ToDoItem struct {
 	ItemId      int    `json:"id"`
@@ -16,11 +23,14 @@ type ToDoItem struct {
 	Description string `json:"description"`
 }
 
-func ToDoApp() {
+func ToDoListApp() {
+	initLogger()
+	logger.Info("Welcome to Manwendra's To-Do List Application.", slog.String("method", "ToDoListApp"))
+
 	add := flag.Bool("add", false, "Add a new To-Do Item to List")
 	update := flag.Bool("update", false, "Update a To-Do Item")
 	remove := flag.Bool("remove", false, "Delete a To-Do Item")
-	removeAll := flag.Bool("removeAll", false, "Remove all To-Do Items")
+	removeAll := flag.Bool("removeAll", false, "Delete all To-Do Items")
 
 	id := flag.Int("id", 0, "ID of Item in To-Do List")
 	header := flag.String("header", "", "Header")
@@ -29,22 +39,22 @@ func ToDoApp() {
 	flag.Parse()
 
 	// Load All To-Do Items from file
-	items := getAllToDoItems(fileName)
+	items, _ := getAllToDoItems(fileName)
 
 	if *add {
 		// Add a new To-Do Item
 		items = addNewToDoItem(items, *header, *desc)
-		fmt.Println("=========================== New To-Do Item added to the List ==============================")
+		logger.Info("New To-Do Item added to the List.")
 	} else if *update && *id != 0 {
 		// Update a To-Do Item
 		items = updateToDoItem(items, *id, *header, *desc)
 	} else if *remove && *id != 0 {
 		// Delete a To-Do Item
-		items = removeToDoItem(items, *id)
+		items = deleteToDoItem(items, *id)
 	} else if *removeAll {
 		// Delete all To-Do Item(s)
 		items = nil
-		fmt.Println("================================ All To-Do Item(s) deleted ================================")
+		logger.Info("All To-Do Item(s) deleted.")
 	} else {
 		printFlagInstructions()
 	}
@@ -53,10 +63,7 @@ func ToDoApp() {
 	printToDoItems(items)
 
 	// Save All To-Do Items to file
-	err := saveAllToDoItems(items, fileName)
-	if err != nil {
-		fmt.Println("==========> Error saving file:", fileName, err)
-	}
+	saveAllToDoItems(items, fileName)
 }
 
 // private methods
@@ -72,8 +79,8 @@ func printFlagInstructions() {
 
 func printToDoItems(items []ToDoItem) {
 	if items != nil && len(items) > 0 {
+		logger.Debug("To-Do Item(s) list.", "To-Do Item(s)", items)
 		fmt.Println("================================== Your To-Do Task Items ==================================")
-		//fmt.Println(items)
 		for index, item := range items {
 			if index != 0 {
 				fmt.Println("-------------------------------------------------------------------------------------------")
@@ -83,7 +90,7 @@ func printToDoItems(items []ToDoItem) {
 		}
 		fmt.Println("===========================================================================================")
 	} else {
-		fmt.Println("============================== No To-Do Items in the List =================================")
+		logger.Info("No To-Do Item(s) in the List.")
 	}
 }
 
@@ -106,61 +113,72 @@ func updateToDoItem(currentItems []ToDoItem, id int, header string, desc string)
 		}
 	}
 	if success {
-		fmt.Println("================================== To-Do Item updated ====================================")
+		logger.Info("To-Do Item updated.", "Id:", id)
 	} else {
-		fmt.Println("================================ To-Do Item not updated ==================================")
+		logger.Warn("To-Do Item not updated.", "Id:", id)
 	}
 	return currentItems
 }
 
-func removeToDoItem(currentItems []ToDoItem, deleteItemId int) []ToDoItem {
+func deleteToDoItem(currentItems []ToDoItem, id int) []ToDoItem {
 	success := false
 	for index, item := range currentItems {
-		if item.ItemId == deleteItemId {
+		if item.ItemId == id {
 			currentItems = append(currentItems[:index], currentItems[index+1:]...)
 			success = true
 		}
 	}
 	if success {
-		fmt.Println("================================== To-Do Item deleted ====================================")
+		logger.Info("To-Do Item deleted.", "Id:", id)
 	} else {
-		fmt.Println("================================ To-Do Item not deleted ==================================")
+		logger.Warn("To-Do Item not deleted.", "Id:", id)
 	}
 	return currentItems
 }
 
-func saveAllToDoItems(allItems []ToDoItem, fileName string) error {
+func saveAllToDoItems(allItems []ToDoItem, fileName string) {
 	// Open json file
-	data, err := json.MarshalIndent(allItems, "", "\t")
-	if err != nil {
-		return err
+	data, err1 := json.MarshalIndent(allItems, "", "\t")
+	if err1 != nil {
+		logger.Error("Error marshalling To-Do Item(s).", err1)
+		return
 	}
-	return ioutil.WriteFile(fileName, data, 0644)
+
+	err2 := ioutil.WriteFile(fileName, data, 0644)
+	if err2 != nil {
+		logger.Error("Error saving to file.", "fileName", fileName, err2)
+		return
+	}
+
+	logger.Info("To-Do Items Saved to file.", "fileName", fileName)
 }
 
-func getAllToDoItems(fileName string) []ToDoItem {
+func getAllToDoItems(fileName string) ([]ToDoItem, error) {
 	// Open local json file
-	jsonFile, err := os.Open(fileName)
-	if err != nil {
-		fmt.Println("==========> Error Opening file:", fileName, err)
-	} else {
-		byteValue, err := ioutil.ReadAll(jsonFile)
-		if err != nil {
-			fmt.Println("==========> Error Reading file:", fileName, err)
-		} else {
-			if byteValue != nil {
-				// Parse the json file to ToDoItems
-				var items []ToDoItem
-				err := json.Unmarshal(byteValue, &items)
-				if err != nil {
-					fmt.Println("==========> Error Unmarshalling file:", err)
-				} else {
-					if items != nil && len(items) > 0 {
-						return items
-					}
-				}
-			}
+	jsonFile, err1 := os.Open(fileName)
+	if err1 != nil {
+		logger.Error("Error Opening file.", "fileName", fileName, err1)
+		return nil, err1
+	}
+
+	byteValue, err2 := ioutil.ReadAll(jsonFile)
+	if err2 != nil {
+		logger.Error("Error Reading file.", "fileName", fileName, err2)
+		return nil, err2
+	}
+
+	if byteValue != nil {
+		// Parse the json file to ToDoItems
+		var items []ToDoItem
+		err3 := json.Unmarshal(byteValue, &items)
+		if err3 != nil {
+			logger.Error("Error Unmarshalling To-Do Item(s).", err3)
+			return nil, err3
+		}
+
+		if items != nil && len(items) > 0 {
+			return items, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
