@@ -13,7 +13,7 @@ import (
 
 const fileName = "./toDoUtil/ToDoAppData.json"
 
-var statuses = []string{"not-started", "started", "completed"}
+var Statuses = []string{"not-started", "started", "completed"}
 
 type ToDoItem struct {
 	ItemId      int    `json:"id"`
@@ -27,7 +27,6 @@ func ToDoListApp() {
 	add := flag.Bool("add", false, "Add a new To-Do Item to List")
 	update := flag.Bool("update", false, "Update a To-Do Item")
 	remove := flag.Bool("remove", false, "Delete a To-Do Item")
-	removeAll := flag.Bool("removeAll", false, "Delete all To-Do Items")
 
 	id := flag.Int("id", 0, "ID of Item in To-Do List")
 	desc := flag.String("desc", "", "Description of Item in To-Do List")
@@ -36,23 +35,18 @@ func ToDoListApp() {
 	flag.Parse()
 
 	// Load All To-Do Items from file
-	items, _ := getAllToDoItems(fileName)
+	items, _ := GetAllToDoItems(fileName)
 
 	switch {
 	case *add:
 		// Add a new To-Do Item
 		items = AddNewToDoItem(items, *desc)
-		base.LogInfo("New To-Do Item added to the List.")
 	case *update && *id != 0:
 		// Update a To-Do Item
 		items = UpdateToDoItem(items, *id, *desc, *status)
 	case *remove && *id != 0:
 		// Delete a To-Do Item
 		items = DeleteToDoItem(items, *id)
-	case *removeAll:
-		// Delete all To-Do Item(s)
-		items = nil
-		base.LogInfo("All To-Do Item(s) deleted.")
 	default:
 		printFlagInstructions()
 	}
@@ -65,13 +59,11 @@ func ToDoListApp() {
 }
 
 // private methods
-
 func printFlagInstructions() {
 	fmt.Println("======================== Use following flags for various operations =======================" +
 		"\n-add -header=<name> -desc <description> to \"Add a new To-Do Item\"" +
 		"\n-update -id=<itemId> -header=<name> -desc <description> to \"Update a To-Do Item\"" +
 		"\n-remove -id=<itemId> to \"Delete a To-Do Item\"" +
-		"\n-removeAll to \"Delete all To-Do Item(s)\"" +
 		"\n===========================================================================================")
 }
 
@@ -97,12 +89,16 @@ func AddNewToDoItem(currentItems []ToDoItem, desc string) []ToDoItem {
 	if itemNos > 0 {
 		id = currentItems[itemNos-1].ItemId + 1
 	}
-	return append(currentItems, ToDoItem{id, desc, statuses[0]})
+
+	currentItems = append(currentItems, ToDoItem{id, desc, Statuses[0]})
+	base.LogInfo("New To-Do Item added to the List.")
+
+	return currentItems
 }
 
 func UpdateToDoItem(currentItems []ToDoItem, id int, desc string, status string) []ToDoItem {
-	if status != "" && !slices.Contains(statuses, status) {
-		base.LogError("status of To-Do Item is invalid.", "valid statuses", statuses)
+	if status != "" && !slices.Contains(Statuses, status) {
+		base.LogError("status of To-Do Item is invalid.", "valid statuses", Statuses)
 		return currentItems
 	}
 
@@ -159,7 +155,7 @@ func SaveAllToDoItems(allItems []ToDoItem, fileName string) {
 	base.LogInfo("To-Do Items Saved to file.", "fileName", fileName)
 }
 
-func getAllToDoItems(fileName string) ([]ToDoItem, error) {
+func GetAllToDoItems(fileName string) ([]ToDoItem, error) {
 	// Open local json file
 	jsonFile, err1 := os.Open(fileName)
 	if err1 != nil {
