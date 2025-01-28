@@ -8,7 +8,7 @@ import (
 	"slices"
 )
 
-const FileName = "./data/ToDoAppData.json"
+const FileName = "./ToDoAppData.json"
 
 var Statuses = []string{"not-started", "started", "completed"}
 
