@@ -3,13 +3,12 @@ package cli
 import (
 	"flag"
 	"fmt"
-	"goLangToDoApp/api"
-	"goLangToDoApp/base"
+	"goLangToDoApp/util"
 	"log/slog"
 )
 
-func ToDoListApp() {
-	base.LogInfo("Welcome to Manwendra's To-Do List Application.", slog.String("method", "ToDoListApp"))
+func ToDoListCli() {
+	util.LogInfo("Welcome to Manwendra's To-Do List Application.", slog.String("method", "ToDoListApp"))
 
 	add := flag.Bool("add", false, "Add a new To-Do Item to List")
 	update := flag.Bool("update", false, "Update a To-Do Item")
@@ -22,18 +21,18 @@ func ToDoListApp() {
 	flag.Parse()
 
 	// Load All To-Do Items from file
-	items, _ := api.GetAllToDoItems(api.FileName)
+	items, _ := util.GetAllToDoItems(util.FileName)
 
 	switch {
 	case *add:
 		// Add a new To-Do Item
-		items = api.AddNewToDoItem(items, *desc)
+		items, _ = util.AddNewToDoItem(items, *desc)
 	case *update && *id != 0:
 		// Update a To-Do Item
-		items = api.UpdateToDoItem(items, *id, *desc, *status)
+		items, _ = util.UpdateToDoItem(items, *id, *desc, *status)
 	case *remove && *id != 0:
 		// Delete a To-Do Item
-		items = api.DeleteToDoItem(items, *id)
+		items, _ = util.DeleteToDoItem(items, *id)
 	default:
 		printFlagInstructions()
 	}
@@ -42,7 +41,7 @@ func ToDoListApp() {
 	printToDoItems(items)
 
 	// Save All To-Do Items to file
-	api.SaveAllToDoItems(items, api.FileName)
+	util.SaveAllToDoItems(items, util.FileName)
 }
 
 // private methods
@@ -54,9 +53,9 @@ func printFlagInstructions() {
 		"\n===========================================================================================")
 }
 
-func printToDoItems(items []api.ToDoItem) {
+func printToDoItems(items []util.ToDoItem) {
 	if items != nil && len(items) > 0 {
-		base.LogDebug("To-Do Item(s) list.", "To-Do Item(s)", items)
+		util.LogDebug("To-Do Item(s) list.", "To-Do Item(s)", items)
 		fmt.Println("================================== Your To-Do Task Items ==================================")
 		for index, item := range items {
 			if index != 0 {
@@ -66,6 +65,6 @@ func printToDoItems(items []api.ToDoItem) {
 		}
 		fmt.Println("===========================================================================================")
 	} else {
-		base.LogInfo("No To-Do Item(s) in the List.")
+		util.LogInfo("No To-Do Item(s) in the List.")
 	}
 }

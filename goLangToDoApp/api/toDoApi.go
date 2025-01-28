@@ -2,120 +2,166 @@ package api
 
 import (
 	"encoding/json"
-	"goLangToDoApp/base"
-	"io/ioutil"
-	"os"
-	"slices"
+	"errors"
+	"goLangToDoApp/util"
+	"net/http"
+	"strconv"
 )
 
-const FileName = "./data/ToDoAppData.json"
+func ToDoListApi() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/todoapp/create", createFunc())
+	mux.HandleFunc("/todoapp/get", getFunc())
+	mux.HandleFunc("/todoapp/update", updateFunc())
+	mux.HandleFunc("/todoapp/delete", deleteFunc())
 
-var Statuses = []string{"not-started", "started", "completed"}
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: mux,
+	}
 
-type ToDoItem struct {
-	ItemId      int    `json:"id"`
-	Description string `json:"description"`
-	Status      string `json:"status"`
+	util.LogInfo("Http Server Listening on port 8080")
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		util.LogError("Http Server Listening error:", err)
+	}
 }
 
-func AddNewToDoItem(currentItems []ToDoItem, desc string) []ToDoItem {
-	id := 1
-	itemNos := len(currentItems)
-	if itemNos > 0 {
-		id = currentItems[itemNos-1].ItemId + 1
-	}
-
-	currentItems = append(currentItems, ToDoItem{id, desc, Statuses[0]})
-	base.LogInfo("New To-Do Item added to the List.")
-
-	return currentItems
-}
-
-func UpdateToDoItem(currentItems []ToDoItem, id int, desc string, status string) []ToDoItem {
-	if status != "" && !slices.Contains(Statuses, status) {
-		base.LogError("status of To-Do Item is invalid.", "valid statuses", Statuses)
-		return currentItems
-	}
-
-	success := false
-	for index, item := range currentItems {
-		if item.ItemId == id {
-			if desc != "" {
-				currentItems[index].Description = desc
-			}
-			if status != "" {
-				currentItems[index].Status = status
-			}
-			success = true
-		}
-	}
-	if success {
-		base.LogInfo("To-Do Item updated.", "Id:", id)
-	} else {
-		base.LogWarn("To-Do Item not updated.", "Id:", id)
-	}
-	return currentItems
-}
-
-func DeleteToDoItem(currentItems []ToDoItem, id int) []ToDoItem {
-	success := false
-	for index, item := range currentItems {
-		if item.ItemId == id {
-			currentItems = append(currentItems[:index], currentItems[index+1:]...)
-			success = true
-		}
-	}
-	if success {
-		base.LogInfo("To-Do Item deleted.", "Id:", id)
-	} else {
-		base.LogWarn("To-Do Item not deleted.", "Id:", id)
-	}
-	return currentItems
-}
-
-func SaveAllToDoItems(allItems []ToDoItem, fileName string) {
-	// Open json file
-	data, err1 := json.MarshalIndent(allItems, "", "\t")
-	if err1 != nil {
-		base.LogError("Error marshalling To-Do Item(s).", err1)
-		return
-	}
-
-	err2 := ioutil.WriteFile(fileName, data, 0644)
-	if err2 != nil {
-		base.LogError("Error saving to file.", "fileName", fileName, err2)
-		return
-	}
-
-	base.LogInfo("To-Do Items Saved to file.", "fileName", fileName)
-}
-
-func GetAllToDoItems(fileName string) ([]ToDoItem, error) {
-	// Open local json file
-	jsonFile, err1 := os.Open(fileName)
-	if err1 != nil {
-		base.LogError("Error Opening file.", "fileName", fileName, err1)
-		return nil, err1
-	}
-
-	byteValue, err2 := ioutil.ReadAll(jsonFile)
-	if err2 != nil {
-		base.LogError("Error Reading file.", "fileName", fileName, err2)
-		return nil, err2
-	}
-
-	if byteValue != nil {
-		// Parse the json file to ToDoItems
-		var items []ToDoItem
-		err3 := json.Unmarshal(byteValue, &items)
-		if err3 != nil {
-			base.LogError("Error Unmarshalling To-Do Item(s).", err3)
-			return nil, err3
+func createFunc() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodPost {
+			msg := "Invalid Method. Accepted methods: POST"
+			http.Error(res, msg, http.StatusMethodNotAllowed)
+			util.LogError(msg)
+			return
 		}
 
-		if items != nil && len(items) > 0 {
-			return items, nil
+		var payload struct {
+			Description string `json:"description"`
 		}
+		err := json.NewDecoder(req.Body).Decode(&payload)
+		if err != nil || payload.Description == "" {
+			msg := "Invalid request body. Accepted payload: " +
+				"\n{\n\"description\" : <Task Description>\n}"
+			http.Error(res, msg, http.StatusBadRequest)
+			util.LogError(msg)
+			return
+		}
+
+		items, _ := util.GetAllToDoItems(util.FileName)
+
+		allItems, err := util.AddNewToDoItem(items, payload.Description)
+		if err != nil {
+			msg := "Failed to create new To-Do Item."
+			http.Error(res, msg, http.StatusInternalServerError)
+			util.LogError(msg)
+			return
+		}
+
+		util.SaveAllToDoItems(allItems, util.FileName)
+		util.LogInfo("Created new To-Do Item successfully")
+		res.WriteHeader(http.StatusCreated)
 	}
-	return nil, nil
+}
+
+func getFunc() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodGet {
+			msg := "Invalid Method. Accepted methods: GET"
+			http.Error(res, msg, http.StatusMethodNotAllowed)
+			util.LogError(msg)
+			return
+		}
+
+		items, _ := util.GetAllToDoItems(util.FileName)
+		res.Header().Set("Content-Type", "application/json")
+		err := json.NewEncoder(res).Encode(items)
+		if err != nil {
+			util.LogError("Failed to encode To-Do Items.")
+			return
+		}
+
+		util.LogInfo("Fetched To-Do Items.", "Items", items)
+		res.WriteHeader(http.StatusOK)
+	}
+}
+
+func updateFunc() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodPut {
+			msg := "Invalid Method. Accepted methods: PUT"
+			http.Error(res, msg, http.StatusMethodNotAllowed)
+			util.LogError(msg)
+			return
+		}
+
+		var payload struct {
+			ItemId      int    `json:"id"`
+			Description string `json:"description"`
+			Status      string `json:"status"`
+		}
+		err := json.NewDecoder(req.Body).Decode(&payload)
+		if err != nil || (payload.ItemId == 0 || (payload.Description == "" && payload.Status == "")) {
+			msg := "Invalid request body. Accepted payload: \n" +
+				"{\n" +
+				"\"id\" : <Task Id>,\n" +
+				"\"description\" : <Task Description>\n," +
+				"\"status\" : <Task Status>\n}"
+			http.Error(res, msg, http.StatusBadRequest)
+			util.LogError(msg)
+			return
+		}
+
+		items, _ := util.GetAllToDoItems(util.FileName)
+		allItems, err := util.UpdateToDoItem(items, payload.ItemId, payload.Description, payload.Status)
+		if err != nil {
+			msg := "Failed to update To-Do Item."
+			http.Error(res, msg, http.StatusInternalServerError)
+			util.LogError(msg)
+			return
+		}
+
+		util.SaveAllToDoItems(allItems, util.FileName)
+		util.LogInfo("Updated To-Do Item successfully.", "Id", payload.ItemId)
+		res.WriteHeader(http.StatusOK)
+	}
+}
+
+func deleteFunc() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodDelete {
+			msg := "Invalid Method. Accepted methods: DELETE"
+			http.Error(res, msg, http.StatusMethodNotAllowed)
+			util.LogError(msg)
+			return
+		}
+
+		idStr := req.URL.Query().Get("id")
+		if idStr == "" {
+			msg := "Missing 'id' query parameter."
+			http.Error(res, msg, http.StatusBadRequest)
+			util.LogError(msg)
+			return
+		}
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			msg := "Invalid 'id' query parameter."
+			http.Error(res, msg, http.StatusBadRequest)
+			util.LogError(msg)
+			return
+		}
+
+		items, _ := util.GetAllToDoItems(util.FileName)
+		allItems, err := util.DeleteToDoItem(items, id)
+		if err != nil {
+			msg := "Failed to Delete To-Do Item."
+			http.Error(res, msg, http.StatusInternalServerError)
+			util.LogError(msg)
+			return
+		}
+
+		util.SaveAllToDoItems(allItems, util.FileName)
+		util.LogInfo("Deleted To-Do Item successfully.", "Id", id)
+		res.WriteHeader(http.StatusOK)
+	}
 }

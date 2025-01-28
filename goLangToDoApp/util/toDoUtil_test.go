@@ -1,14 +1,13 @@
-package api
+package util
 
 import (
-	"goLangToDoApp/base"
 	"testing"
 )
 
 const tempFile = "test_ToDoAppData.json"
 
 func TestToDoListApp(t *testing.T) {
-	base.Init()
+	Init()
 
 	items := testGetAllToDoItems(t)
 	testAddNewToDoItem(items, t)
@@ -29,7 +28,7 @@ func testGetAllToDoItems(t *testing.T) []ToDoItem {
 
 func testAddNewToDoItem(items []ToDoItem, t *testing.T) {
 	// Test Add New To-Do Item
-	itemsGot := AddNewToDoItem(items, "Test Description")
+	itemsGot, _ := AddNewToDoItem(items, "Test Description")
 	if len(itemsGot) != 2 {
 		t.Errorf("Failed to Add New To-Do Item")
 	}
@@ -37,7 +36,7 @@ func testAddNewToDoItem(items []ToDoItem, t *testing.T) {
 
 func testUpdateToDoItemDesc(items []ToDoItem, t *testing.T) {
 	// Test Update To-Do Item Desc
-	itemsGot := UpdateToDoItem(items, 1, "Updated Description", "")
+	itemsGot, _ := UpdateToDoItem(items, 1, "Updated Description", "")
 	if itemsGot[0].Description != "Updated Description" {
 		t.Errorf("Failed to Update To-Do Item Description")
 	}
@@ -45,7 +44,7 @@ func testUpdateToDoItemDesc(items []ToDoItem, t *testing.T) {
 
 func testUpdateToDoItemStatus(items []ToDoItem, t *testing.T) {
 	// Test Update To-Do Status
-	itemsGot := UpdateToDoItem(items, 1, "", "completed")
+	itemsGot, _ := UpdateToDoItem(items, 1, "", "completed")
 	if itemsGot[0].Status != "completed" {
 		t.Errorf("Failed to Update To-Do Item Status")
 	}
@@ -53,7 +52,7 @@ func testUpdateToDoItemStatus(items []ToDoItem, t *testing.T) {
 
 func testDeleteToDoItemStatus(items []ToDoItem, t *testing.T) {
 	// Test Delete To-Do Item
-	itemsGot := DeleteToDoItem(items, 1)
+	itemsGot, _ := DeleteToDoItem(items, 1)
 	if len(itemsGot) != 0 {
 		t.Errorf("Failed to Delete To-Do Item Status")
 	}
