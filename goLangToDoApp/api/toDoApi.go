@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"goLangToDoApp/util"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -18,7 +19,13 @@ func ToDoListApi() {
 	mux.HandleFunc("/todoapp/get", getFunc())
 	mux.HandleFunc("/todoapp/update", updateFunc())
 	mux.HandleFunc("/todoapp/delete", deleteFunc())
+	mux.HandleFunc("/todoapp/list", listFunc())
 
+	// Serve static files for the /about endpoint
+	dir := http.Dir("/webserver/static/")
+	mux.Handle("/todoapp/about", http.FileServer(dir))
+
+	// Wrapping Handlers
 	handler := util.CreateMiddleware(mux)
 
 	server := &http.Server{
@@ -170,5 +177,20 @@ func deleteFunc() http.HandlerFunc {
 		util.SaveAllToDoItems(allItems, util.FileName)
 		util.LogInfo("Deleted To-Do Item successfully.", "Id", id)
 		res.WriteHeader(http.StatusOK)
+	}
+}
+
+func listFunc() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		tmpl, err := template.ParseFiles("webserver/template/list.html")
+		if err != nil {
+			msg := "Failed to load template."
+			http.Error(res, msg, http.StatusInternalServerError)
+			util.LogError(msg)
+			return
+		}
+
+		items, _ := util.GetAllToDoItems(util.FileName)
+		_ = tmpl.Execute(res, items)
 	}
 }
