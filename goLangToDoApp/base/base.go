@@ -5,6 +5,8 @@ import (
 	"github.com/google/uuid"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 const TraceIDString = "trace_id"
@@ -17,6 +19,23 @@ func Init() {
 	slog.SetDefault(logger)
 
 	ctx = context.WithValue(context.Background(), TraceIDString, uuid.New())
+}
+
+func Exit() {
+	// Signal Channel listens for
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+
+	// System Exit when signal received
+	go func() {
+		<-signalChannel
+		LogInfo("Received termination signal, shutting down...")
+		os.Exit(0)
+	}()
+
+	// Infinite loop to keep the application running
+	LogInfo("Application is Running. Press Ctrl+C to exit.")
+	select {}
 }
 
 func LogInfo(msg string, args ...any) {

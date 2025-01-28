@@ -1,4 +1,4 @@
-package toDoUtil
+package api
 
 import (
 	"goLangToDoApp/base"
@@ -10,14 +10,21 @@ const tempFile = "test_ToDoAppData.json"
 func TestToDoListApp(t *testing.T) {
 	base.Init()
 
-	items := []ToDoItem{{1, "Description 1", Statuses[0]}}
-	SaveAllToDoItems(items, tempFile)
-	items, _ = GetAllToDoItems(tempFile)
-
+	items := testGetAllToDoItems(t)
 	testAddNewToDoItem(items, t)
 	testUpdateToDoItemDesc(items, t)
 	testUpdateToDoItemStatus(items, t)
 	testDeleteToDoItemStatus(items, t)
+}
+
+func testGetAllToDoItems(t *testing.T) []ToDoItem {
+	itemsGot := []ToDoItem{{1, "Description 1", Statuses[0]}}
+	SaveAllToDoItems(itemsGot, tempFile)
+	itemsGot, _ = GetAllToDoItems(tempFile)
+	if len(itemsGot) != 1 {
+		t.Errorf("Failed to Get To-Do Item(s)")
+	}
+	return itemsGot
 }
 
 func testAddNewToDoItem(items []ToDoItem, t *testing.T) {

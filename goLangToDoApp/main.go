@@ -2,12 +2,14 @@ package main
 
 import (
 	"goLangToDoApp/base"
-	"goLangToDoApp/toDoUtil"
+	"goLangToDoApp/cli"
 )
 
 func main() {
 	base.Init()
 
 	// To-Do List CLI Application
-	toDoUtil.ToDoListApp()
+	cli.ToDoListApp()
+
+	base.Exit()
 }
