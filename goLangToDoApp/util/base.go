@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -36,6 +37,12 @@ func Exit() {
 	// Infinite loop to keep the application running
 	LogInfo("Application is Running. Press Ctrl+C to exit.")
 	select {}
+}
+
+func CreateMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
 }
 
 func LogInfo(msg string, args ...any) {

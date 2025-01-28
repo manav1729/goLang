@@ -8,7 +8,7 @@ import (
 )
 
 func ToDoListCli() {
-	util.LogInfo("Welcome to Manwendra's To-Do List Application.", slog.String("method", "ToDoListApp"))
+	util.LogInfo("Welcome to Manwendra's To-Do List Application.", slog.String("method", "ToDoListCli"))
 
 	add := flag.Bool("add", false, "Add a new To-Do Item to List")
 	update := flag.Bool("update", false, "Update a To-Do Item")

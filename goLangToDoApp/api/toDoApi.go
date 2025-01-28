@@ -4,24 +4,31 @@ import (
 	"encoding/json"
 	"errors"
 	"goLangToDoApp/util"
+	"log/slog"
 	"net/http"
 	"strconv"
 )
 
 func ToDoListApi() {
+	util.LogInfo("Welcome to Manwendra's To-Do List Application.", slog.String("method", "ToDoListApi"))
+
+	// Setup Http Server endpoints
 	mux := http.NewServeMux()
 	mux.HandleFunc("/todoapp/create", createFunc())
 	mux.HandleFunc("/todoapp/get", getFunc())
 	mux.HandleFunc("/todoapp/update", updateFunc())
 	mux.HandleFunc("/todoapp/delete", deleteFunc())
 
+	handler := util.CreateMiddleware(mux)
+
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: handler,
 	}
 
 	util.LogInfo("Http Server Listening on port 8080")
-	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	err := server.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		util.LogError("Http Server Listening error:", err)
 	}
 }
