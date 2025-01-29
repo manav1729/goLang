@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
 	"goLangToDoApp/pkg/base"
@@ -10,23 +11,26 @@ import (
 	"net/http"
 )
 
-const fileName = "../data/ToDoData.json"
-const staticDir = "static/"
+var (
+	//go:embed static
+	static embed.FS
+)
 
 var ctx context.Context
+var fileName string
 
 func main() {
 	ctx = base.Init()
+	fileName = base.DataFile
 
 	base.LogInfo(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListWeb")
 
 	// Setup Http Server endpoints
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /todoapp/list", listFunc)
+	mux.HandleFunc("GET /todo/list", listFunc)
 
 	// Serve static files for the /about endpoint
-	staticDir := http.Dir(staticDir)
-	mux.Handle("GET /todoapp/about", http.FileServer(staticDir))
+	mux.Handle("/static/", http.FileServer(http.FS(static)))
 
 	server := &http.Server{
 		Addr:    ":8081",
@@ -44,7 +48,7 @@ func main() {
 }
 
 func listFunc(res http.ResponseWriter, _ *http.Request) {
-	tmpl, err := template.ParseFiles("template/list.html")
+	tmpl, err := template.ParseFiles("dynamic/list.html")
 	if err != nil {
 		msg := "Failed to load template."
 		http.Error(res, msg, http.StatusInternalServerError)

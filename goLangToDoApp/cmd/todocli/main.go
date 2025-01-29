@@ -8,10 +8,11 @@ import (
 	"goLangToDoApp/pkg/todo"
 )
 
-const fileName = "../data/ToDoData.json"
+var fileName string
 
 func main() {
 	ctx := base.Init()
+	fileName = base.DataFile
 
 	base.LogInfo(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListCli")
 

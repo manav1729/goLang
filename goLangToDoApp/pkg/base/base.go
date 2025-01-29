@@ -10,6 +10,7 @@ import (
 )
 
 const TraceIDString = "trace_id"
+const DataFile = "../data/ToDoData.json"
 
 func Init() context.Context {
 	// Set default logger

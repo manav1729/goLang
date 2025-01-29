@@ -62,34 +62,17 @@ func DeleteToDoItem(currentItems []Item, id int) ([]Item, error) {
 	return currentItems, nil
 }
 
-func SaveAllToDoItems(allItems []Item, fileName string) error {
-	// Open json file
-	data, err1 := json.MarshalIndent(allItems, "", "\t")
-	if err1 != nil {
-		msg := fmt.Sprintf("%s\n%s", "Error marshalling To-Do Item(s).", err1)
-		return errors.New(msg)
-	}
-
-	err2 := ioutil.WriteFile(fileName, data, 0644)
-	if err2 != nil {
-		msg := fmt.Sprintf("%s %s\n%s", "Error saving to file.", fileName, err2)
-		return errors.New(msg)
-	}
-
-	return nil
-}
-
-func GetAllToDoItems(fileName string) ([]Item, error) {
+func GetAllToDoItems(filename string) ([]Item, error) {
 	// Open local json file
-	jsonFile, err1 := os.Open(fileName)
+	jsonFile, err1 := os.Open(filename)
 	if err1 != nil {
-		msg := fmt.Sprintf("%s %s\n%s", "Error opening file.", fileName, err1)
+		msg := fmt.Sprintf("%s %s\n%s", "Error opening file.", filename, err1)
 		return nil, errors.New(msg)
 	}
 
 	byteValue, err2 := ioutil.ReadAll(jsonFile)
 	if err2 != nil {
-		msg := fmt.Sprintf("%s %s\n%s", "Error reading file.", fileName, err2)
+		msg := fmt.Sprintf("%s %s\n%s", "Error reading file.", filename, err2)
 		return nil, errors.New(msg)
 	}
 
@@ -107,4 +90,21 @@ func GetAllToDoItems(fileName string) ([]Item, error) {
 		}
 	}
 	return nil, nil
+}
+
+func SaveAllToDoItems(allItems []Item, filename string) error {
+	// Open json file
+	data, err1 := json.MarshalIndent(allItems, "", "\t")
+	if err1 != nil {
+		msg := fmt.Sprintf("%s\n%s", "Error marshalling To-Do Item(s).", err1)
+		return errors.New(msg)
+	}
+
+	err2 := ioutil.WriteFile(filename, data, 0644)
+	if err2 != nil {
+		msg := fmt.Sprintf("%s %s\n%s", "Error saving to file.", filename, err2)
+		return errors.New(msg)
+	}
+
+	return nil
 }

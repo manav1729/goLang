@@ -11,21 +11,21 @@ import (
 	"strconv"
 )
 
-const fileName = "../data/ToDoData.json"
-
 var ctx context.Context
+var fileName string
 
 func main() {
 	ctx = base.Init()
+	fileName = base.DataFile
 
 	base.LogInfo(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListApi")
 
 	// Setup Http Server endpoints
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /todoapp/create", createFunc)
-	mux.HandleFunc("GET /todoapp/get", getFunc)
-	mux.HandleFunc("PUT /todoapp/update", updateFunc)
-	mux.HandleFunc("DELETE /todoapp/delete", deleteFunc)
+	mux.HandleFunc("POST /todo/create", createFunc)
+	mux.HandleFunc("GET /todo/get", getFunc)
+	mux.HandleFunc("PUT /todo/update", updateFunc)
+	mux.HandleFunc("DELETE /todo/delete", deleteFunc)
 
 	// Wrapping Handlers
 	handler := createMiddleware(ctx, mux)
