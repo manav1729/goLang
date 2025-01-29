@@ -1,32 +1,34 @@
-package util
+package todo
 
 import (
 	"testing"
 )
 
-const tempFile = "test_ToDoAppData.json"
+const tempFile = "test_ToDoData.json"
 
-func TestToDoListApp(t *testing.T) {
-	Init()
+func TestToDo(t *testing.T) {
+	itemsGot := []Item{{1, "Description 1", Statuses[0]}}
+	err := SaveAllToDoItems(itemsGot, tempFile)
+	if err != nil {
+		t.Errorf("Failed to Get To-Do Item(s)")
+	}
 
-	items := testGetAllToDoItems(t)
-	testAddNewToDoItem(items, t)
-	testUpdateToDoItemDesc(items, t)
-	testUpdateToDoItemStatus(items, t)
-	testDeleteToDoItemStatus(items, t)
+	testGetAllToDoItems(t)
+	testAddNewToDoItem(itemsGot, t)
+	testUpdateToDoItemDesc(itemsGot, t)
+	testUpdateToDoItemStatus(itemsGot, t)
+	testDeleteToDoItemStatus(itemsGot, t)
 }
 
-func testGetAllToDoItems(t *testing.T) []ToDoItem {
-	itemsGot := []ToDoItem{{1, "Description 1", Statuses[0]}}
-	SaveAllToDoItems(itemsGot, tempFile)
-	itemsGot, _ = GetAllToDoItems(tempFile)
-	if len(itemsGot) != 1 {
+func testGetAllToDoItems(t *testing.T) []Item {
+	itemsGot, err := GetAllToDoItems(tempFile)
+	if err != nil || len(itemsGot) != 1 {
 		t.Errorf("Failed to Get To-Do Item(s)")
 	}
 	return itemsGot
 }
 
-func testAddNewToDoItem(items []ToDoItem, t *testing.T) {
+func testAddNewToDoItem(items []Item, t *testing.T) {
 	// Test Add New To-Do Item
 	itemsGot, _ := AddNewToDoItem(items, "Test Description")
 	if len(itemsGot) != 2 {
@@ -34,7 +36,7 @@ func testAddNewToDoItem(items []ToDoItem, t *testing.T) {
 	}
 }
 
-func testUpdateToDoItemDesc(items []ToDoItem, t *testing.T) {
+func testUpdateToDoItemDesc(items []Item, t *testing.T) {
 	// Test Update To-Do Item Desc
 	itemsGot, _ := UpdateToDoItem(items, 1, "Updated Description", "")
 	if itemsGot[0].Description != "Updated Description" {
@@ -42,7 +44,7 @@ func testUpdateToDoItemDesc(items []ToDoItem, t *testing.T) {
 	}
 }
 
-func testUpdateToDoItemStatus(items []ToDoItem, t *testing.T) {
+func testUpdateToDoItemStatus(items []Item, t *testing.T) {
 	// Test Update To-Do Status
 	itemsGot, _ := UpdateToDoItem(items, 1, "", "completed")
 	if itemsGot[0].Status != "completed" {
@@ -50,7 +52,7 @@ func testUpdateToDoItemStatus(items []ToDoItem, t *testing.T) {
 	}
 }
 
-func testDeleteToDoItemStatus(items []ToDoItem, t *testing.T) {
+func testDeleteToDoItemStatus(items []Item, t *testing.T) {
 	// Test Delete To-Do Item
 	itemsGot, _ := DeleteToDoItem(items, 1)
 	if len(itemsGot) != 0 {

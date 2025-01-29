@@ -1,40 +1,30 @@
-package util
+package todo
 
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"slices"
 )
 
-const FileName = "./ToDoAppData.json"
-
 var Statuses = []string{"not-started", "started", "completed"}
 
-type ToDoItem struct {
-	ItemId      int    `json:"id"`
-	Description string `json:"description"`
-	Status      string `json:"status"`
-}
-
-func AddNewToDoItem(currentItems []ToDoItem, desc string) ([]ToDoItem, error) {
+func AddNewToDoItem(currentItems []Item, desc string) ([]Item, error) {
 	id := 1
 	itemNos := len(currentItems)
 	if itemNos > 0 {
 		id = currentItems[itemNos-1].ItemId + 1
 	}
 
-	currentItems = append(currentItems, ToDoItem{id, desc, Statuses[0]})
-	LogInfo("New To-Do Item added to the List.")
-
+	currentItems = append(currentItems, Item{id, desc, Statuses[0]})
 	return currentItems, nil
 }
 
-func UpdateToDoItem(currentItems []ToDoItem, id int, desc string, status string) ([]ToDoItem, error) {
+func UpdateToDoItem(currentItems []Item, id int, desc string, status string) ([]Item, error) {
 	if status != "" && !slices.Contains(Statuses, status) {
 		msg := "status of To-Do Item is invalid"
-		LogError(msg, "valid statuses", Statuses)
 		return currentItems, errors.New(msg)
 	}
 
@@ -50,17 +40,14 @@ func UpdateToDoItem(currentItems []ToDoItem, id int, desc string, status string)
 			success = true
 		}
 	}
-	if success {
-		LogInfo("To-Do Item updated.", "Id:", id)
-	} else {
+	if !success {
 		msg := "To-Do Item failed to update"
-		LogWarn(msg, "Id:", id)
 		return currentItems, errors.New(msg)
 	}
 	return currentItems, nil
 }
 
-func DeleteToDoItem(currentItems []ToDoItem, id int) ([]ToDoItem, error) {
+func DeleteToDoItem(currentItems []Item, id int) ([]Item, error) {
 	success := false
 	for index, item := range currentItems {
 		if item.ItemId == id {
@@ -68,54 +55,51 @@ func DeleteToDoItem(currentItems []ToDoItem, id int) ([]ToDoItem, error) {
 			success = true
 		}
 	}
-	if success {
-		LogInfo("To-Do Item deleted.", "Id:", id)
-	} else {
+	if !success {
 		msg := "To-Do Item failed to deleted"
-		LogWarn(msg, "Id:", id)
 		return currentItems, errors.New(msg)
 	}
 	return currentItems, nil
 }
 
-func SaveAllToDoItems(allItems []ToDoItem, fileName string) {
+func SaveAllToDoItems(allItems []Item, fileName string) error {
 	// Open json file
 	data, err1 := json.MarshalIndent(allItems, "", "\t")
 	if err1 != nil {
-		LogError("Error marshalling To-Do Item(s).", err1)
-		return
+		msg := fmt.Sprintf("%s\n%s", "Error marshalling To-Do Item(s).", err1)
+		return errors.New(msg)
 	}
 
 	err2 := ioutil.WriteFile(fileName, data, 0644)
 	if err2 != nil {
-		LogError("Error saving to file.", "fileName", fileName, err2)
-		return
+		msg := fmt.Sprintf("%s %s\n%s", "Error saving to file.", fileName, err2)
+		return errors.New(msg)
 	}
 
-	LogInfo("To-Do Items Saved to file.", "fileName", fileName)
+	return nil
 }
 
-func GetAllToDoItems(fileName string) ([]ToDoItem, error) {
+func GetAllToDoItems(fileName string) ([]Item, error) {
 	// Open local json file
 	jsonFile, err1 := os.Open(fileName)
 	if err1 != nil {
-		LogError("Error Opening file.", "fileName", fileName, err1)
-		return nil, err1
+		msg := fmt.Sprintf("%s %s\n%s", "Error opening file.", fileName, err1)
+		return nil, errors.New(msg)
 	}
 
 	byteValue, err2 := ioutil.ReadAll(jsonFile)
 	if err2 != nil {
-		LogError("Error Reading file.", "fileName", fileName, err2)
-		return nil, err2
+		msg := fmt.Sprintf("%s %s\n%s", "Error reading file.", fileName, err2)
+		return nil, errors.New(msg)
 	}
 
 	if byteValue != nil {
 		// Parse the json file to ToDoItems
-		var items []ToDoItem
+		var items []Item
 		err3 := json.Unmarshal(byteValue, &items)
 		if err3 != nil {
-			LogError("Error Unmarshalling To-Do Item(s).", err3)
-			return nil, err3
+			msg := fmt.Sprintf("%s\n%s", "Error Unmarshalling To-Do Item(s).", err3)
+			return nil, errors.New(msg)
 		}
 
 		if items != nil && len(items) > 0 {
