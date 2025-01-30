@@ -75,6 +75,7 @@ func GetAllToDoItems(filename string) ([]Item, error) {
 		msg := fmt.Sprintf("%s %s\n%s", "Error reading file.", filename, err2)
 		return nil, errors.New(msg)
 	}
+	defer jsonFile.Close()
 
 	if byteValue != nil {
 		// Parse the json file to ToDoItems

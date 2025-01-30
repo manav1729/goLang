@@ -1,6 +1,8 @@
 package todo
 
 import (
+	"log"
+	"os"
 	"testing"
 )
 
@@ -18,6 +20,11 @@ func TestToDo(t *testing.T) {
 	testUpdateToDoItemDesc(itemsGot, t)
 	testUpdateToDoItemStatus(itemsGot, t)
 	testDeleteToDoItemStatus(itemsGot, t)
+
+	err = os.Remove(tempFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func testGetAllToDoItems(t *testing.T) []Item {
