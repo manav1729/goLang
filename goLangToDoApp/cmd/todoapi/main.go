@@ -7,18 +7,18 @@ import (
 	"fmt"
 	"goLangToDoApp/pkg/base"
 	"goLangToDoApp/pkg/todo"
+	"log/slog"
 	"net/http"
 	"strconv"
 )
 
-var ctx context.Context
 var fileName string
 
 func main() {
-	ctx = base.Init()
+	ctx := base.Init()
 	fileName = base.DataFile
 
-	base.LogInfo(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListApi")
+	slog.InfoContext(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListApi")
 
 	// Setup Http Server endpoints
 	mux := http.NewServeMux()
@@ -35,10 +35,10 @@ func main() {
 		Handler: handler,
 	}
 
-	base.LogInfo(ctx, "Http Server Listening on port 8080")
+	slog.InfoContext(ctx, "Http Server Listening on port 8080")
 	err := server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		base.LogError(ctx, "Http Server Listening error:", err)
+		slog.ErrorContext(ctx, "Http Server Listening error:", err)
 	}
 
 	base.Exit(ctx)
@@ -51,6 +51,7 @@ func createMiddleware(ctx context.Context, next http.Handler) http.Handler {
 }
 
 func createFunc(res http.ResponseWriter, req *http.Request) {
+	ctx := base.Init()
 	var createReq struct {
 		Description string `json:"description"`
 	}
@@ -59,7 +60,7 @@ func createFunc(res http.ResponseWriter, req *http.Request) {
 		msg := "Invalid request body. Accepted payload: " +
 			"\n{\n\"description\" : <Task Description>\n}"
 		http.Error(res, msg, http.StatusBadRequest)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
@@ -69,7 +70,7 @@ func createFunc(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		msg := fmt.Sprintf("%s/n%s", "Failed to create new To-Do Item.", err)
 		http.Error(res, msg, http.StatusInternalServerError)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
@@ -77,35 +78,37 @@ func createFunc(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		msg := fmt.Sprintf("%s/n%s", "Failed to save created To-Do Item.", err)
 		http.Error(res, msg, http.StatusInternalServerError)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
-	base.LogInfo(ctx, "Created new To-Do Item successfully")
+	slog.InfoContext(ctx, "Created new To-Do Item successfully")
 	res.WriteHeader(http.StatusCreated)
 }
 
 func getFunc(res http.ResponseWriter, _ *http.Request) {
+	ctx := base.Init()
 	items, err := todo.GetAllToDoItems(fileName)
 	if err != nil {
 		msg := fmt.Sprintf("%s/n%s", "Failed to get To-Do Items.", err)
 		http.Error(res, msg, http.StatusInternalServerError)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
 	res.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(res).Encode(items)
 	if err != nil {
-		base.LogError(ctx, "Failed to encode To-Do Items.")
+		slog.ErrorContext(ctx, "Failed to encode To-Do Items.")
 		return
 	}
 
-	base.LogInfo(ctx, "Fetched To-Do Item(s).", "Item(s):", items)
+	slog.InfoContext(ctx, "Fetched To-Do Item(s).", "Item(s):", items)
 	res.WriteHeader(http.StatusOK)
 }
 
 func updateFunc(res http.ResponseWriter, req *http.Request) {
+	ctx := base.Init()
 	var updateReq struct {
 		ItemId      int    `json:"id"`
 		Description string `json:"description"`
@@ -119,7 +122,7 @@ func updateFunc(res http.ResponseWriter, req *http.Request) {
 			"\"description\" : <Task Description>\n," +
 			"\"status\" : <Task Status>\n}"
 		http.Error(res, msg, http.StatusBadRequest)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
@@ -128,7 +131,7 @@ func updateFunc(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		msg := "Failed to update To-Do Item."
 		http.Error(res, msg, http.StatusInternalServerError)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
@@ -136,20 +139,21 @@ func updateFunc(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		msg := "Failed to Save To-Do Item(s)."
 		http.Error(res, msg, http.StatusInternalServerError)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
-	base.LogInfo(ctx, "Updated To-Do Item successfully.", "Id", updateReq.ItemId)
+	slog.InfoContext(ctx, "Updated To-Do Item successfully.", "Id", updateReq.ItemId)
 	res.WriteHeader(http.StatusOK)
 }
 
 func deleteFunc(res http.ResponseWriter, req *http.Request) {
+	ctx := base.Init()
 	idStr := req.URL.Query().Get("id")
 	if idStr == "" {
 		msg := "Missing 'id' query parameter."
 		http.Error(res, msg, http.StatusBadRequest)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
@@ -157,7 +161,7 @@ func deleteFunc(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		msg := "Invalid 'id' query parameter."
 		http.Error(res, msg, http.StatusBadRequest)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
@@ -166,7 +170,7 @@ func deleteFunc(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		msg := "Failed to Delete To-Do Item."
 		http.Error(res, msg, http.StatusInternalServerError)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
@@ -174,9 +178,9 @@ func deleteFunc(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		msg := "Failed to Save To-Do Item(s)."
 		http.Error(res, msg, http.StatusInternalServerError)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 	}
 
-	base.LogInfo(ctx, "Deleted To-Do Item successfully.", "Id", id)
+	slog.InfoContext(ctx, "Deleted To-Do Item successfully.", "Id", id)
 	res.WriteHeader(http.StatusOK)
 }

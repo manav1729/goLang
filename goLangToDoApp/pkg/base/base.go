@@ -12,9 +12,25 @@ import (
 const TraceIDString = "trace_id"
 const DataFile = "../data/ToDoData.json"
 
+type customHandler struct {
+	slog.Handler
+}
+
+func (h *customHandler) Handle(ctx context.Context, r slog.Record) error {
+	if traceID, ok := ctx.Value(TraceIDString).(string); ok {
+		r.AddAttrs(slog.String(TraceIDString, traceID))
+	}
+	if traceID, ok := ctx.Value(TraceIDString).(uuid.UUID); ok {
+		r.AddAttrs(slog.String(TraceIDString, traceID.String()))
+	}
+	return h.Handler.Handle(ctx, r)
+}
+
 func Init() context.Context {
 	// Set default logger
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	baseHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true})
+	handler := &customHandler{baseHandler}
+	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
 	ctx := context.WithValue(context.Background(), TraceIDString, uuid.New())
@@ -29,34 +45,11 @@ func Exit(ctx context.Context) {
 	// System Exit when signal received
 	go func() {
 		<-signalChannel
-		LogInfo(ctx, "Received termination signal, shutting down...")
+		slog.InfoContext(ctx, "Received termination signal, shutting down...")
 		os.Exit(0)
 	}()
 
 	// Infinite loop to keep the application running
-	LogInfo(ctx, "Application is Running. Press Ctrl+C to exit.")
+	slog.InfoContext(ctx, "Application is Running. Press Ctrl+C to exit.")
 	select {}
-}
-
-func LogInfo(ctx context.Context, msg string, args ...any) {
-	args = appendArgs(ctx, args)
-	slog.InfoContext(ctx, msg, args...)
-}
-
-func LogDebug(ctx context.Context, msg string, args ...any) {
-	args = appendArgs(ctx, args)
-	slog.DebugContext(ctx, msg, args...)
-}
-
-func LogError(ctx context.Context, msg string, args ...any) {
-	args = appendArgs(ctx, args)
-	slog.ErrorContext(ctx, msg, args...)
-}
-
-func appendArgs(ctx context.Context, args []any) []any {
-	return append(args, TraceIDString, getTraceID(ctx))
-}
-
-func getTraceID(ctx context.Context) uuid.UUID {
-	return ctx.Value(TraceIDString).(uuid.UUID)
 }

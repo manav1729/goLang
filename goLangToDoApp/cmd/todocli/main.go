@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"goLangToDoApp/pkg/base"
 	"goLangToDoApp/pkg/todo"
+	"log/slog"
 )
 
 var fileName string
@@ -14,7 +15,7 @@ func main() {
 	ctx := base.Init()
 	fileName = base.DataFile
 
-	base.LogInfo(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListCli")
+	slog.InfoContext(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListCli")
 
 	add := flag.Bool("add", false, "Add a new To-Do Item to List")
 	update := flag.Bool("update", false, "Update a To-Do Item")
@@ -29,7 +30,7 @@ func main() {
 	// Load All To-Do Items from file
 	items, err := todo.GetAllToDoItems(fileName)
 	if err != nil {
-		base.LogError(ctx, "Failed to get item(s) of To-Do List:", err)
+		slog.ErrorContext(ctx, "Failed to get item(s) of To-Do List:", err)
 	}
 
 	switch {
@@ -37,19 +38,19 @@ func main() {
 		// Add a new To-Do Item
 		items, err = todo.AddNewToDoItem(items, *desc)
 		if err != nil {
-			base.LogError(ctx, "Failed to add item to To-Do List:", err)
+			slog.ErrorContext(ctx, "Failed to add item to To-Do List:", err)
 		}
 	case *update && *id != 0:
 		// Update a To-Do Item
 		items, err = todo.UpdateToDoItem(items, *id, *desc, *status)
 		if err != nil {
-			base.LogError(ctx, "Failed to update item to To-Do List:", err)
+			slog.ErrorContext(ctx, "Failed to update item to To-Do List:", err)
 		}
 	case *remove && *id != 0:
 		// Delete a To-Do Item
 		items, err = todo.DeleteToDoItem(items, *id)
 		if err != nil {
-			base.LogError(ctx, "Failed to remove item from To-Do List:", err)
+			slog.ErrorContext(ctx, "Failed to remove item from To-Do List:", err)
 		}
 	default:
 		printFlagInstructions()
@@ -61,7 +62,7 @@ func main() {
 	// Save All To-Do Items to file
 	err = todo.SaveAllToDoItems(items, fileName)
 	if err != nil {
-		base.LogError(ctx, "Failed to save item(s) of To-Do List:", err)
+		slog.ErrorContext(ctx, "Failed to save item(s) of To-Do List:", err)
 	}
 
 	base.Exit(ctx)
@@ -78,7 +79,7 @@ func printFlagInstructions() {
 
 func printToDoItems(ctx context.Context, items []todo.Item) {
 	if items != nil && len(items) > 0 {
-		base.LogDebug(ctx, "To-Do Item(s) list.", "To-Do Item(s)", items)
+		slog.DebugContext(ctx, "To-Do Item(s) list.", "To-Do Item(s)", items)
 		fmt.Println("================================== Your To-Do Task Items ==================================")
 		for index, item := range items {
 			if index != 0 {
@@ -88,6 +89,6 @@ func printToDoItems(ctx context.Context, items []todo.Item) {
 		}
 		fmt.Println("===========================================================================================")
 	} else {
-		base.LogInfo(ctx, "No To-Do Item(s) in the List.")
+		slog.InfoContext(ctx, "No To-Do Item(s) in the List.")
 	}
 }

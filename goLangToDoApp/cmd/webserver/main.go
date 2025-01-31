@@ -1,13 +1,13 @@
 package main
 
 import (
-	"context"
 	"embed"
 	"errors"
 	"fmt"
 	"goLangToDoApp/pkg/base"
 	"goLangToDoApp/pkg/todo"
 	"html/template"
+	"log/slog"
 	"net/http"
 )
 
@@ -16,14 +16,13 @@ var (
 	static embed.FS
 )
 
-var ctx context.Context
 var fileName string
 
 func main() {
-	ctx = base.Init()
+	ctx := base.Init()
 	fileName = base.DataFile
 
-	base.LogInfo(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListWeb")
+	slog.InfoContext(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListWeb")
 
 	// Setup Http Server endpoints
 	mux := http.NewServeMux()
@@ -37,22 +36,23 @@ func main() {
 		Handler: mux,
 	}
 
-	base.LogInfo(ctx, "Http Server Listening on port 8081")
+	slog.InfoContext(ctx, "Http Server Listening on port 8081")
 	err := server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		msg := fmt.Sprintf("%s/n %s", "Http Server Listening error.", err)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 	}
 
 	base.Exit(ctx)
 }
 
 func listFunc(res http.ResponseWriter, _ *http.Request) {
+	ctx := base.Init()
 	tmpl, err := template.ParseFiles("dynamic/list.html")
 	if err != nil {
 		msg := "Failed to load template."
 		http.Error(res, msg, http.StatusInternalServerError)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 
@@ -60,7 +60,7 @@ func listFunc(res http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		msg := "Failed to load To-Do Items."
 		http.Error(res, msg, http.StatusInternalServerError)
-		base.LogError(ctx, msg)
+		slog.ErrorContext(ctx, msg)
 		return
 	}
 	_ = tmpl.Execute(res, items)
