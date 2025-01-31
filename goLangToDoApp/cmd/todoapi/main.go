@@ -120,7 +120,7 @@ func updateFunc(res http.ResponseWriter, req *http.Request) {
 		msg := "Invalid request body. Accepted payload: \n" +
 			"{\n" +
 			"\"id\" : <Task Id>,\n" +
-			"\"description\" : <Task Description>\n," +
+			"\"description\" : <Task Description>,\n" +
 			"\"status\" : <Task Status>\n}"
 		http.Error(res, msg, http.StatusBadRequest)
 		slog.ErrorContext(ctx, msg)
