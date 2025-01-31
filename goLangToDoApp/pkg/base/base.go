@@ -28,7 +28,7 @@ func (h *customHandler) Handle(ctx context.Context, r slog.Record) error {
 
 func Init() context.Context {
 	// Set default logger
-	baseHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true})
+	baseHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
 	handler := &customHandler{baseHandler}
 	logger := slog.New(handler)
 	slog.SetDefault(logger)

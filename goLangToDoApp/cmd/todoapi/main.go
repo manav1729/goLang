@@ -103,7 +103,8 @@ func getFunc(res http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	slog.InfoContext(ctx, "Fetched To-Do Item(s).", "Item(s):", items)
+	slog.InfoContext(ctx, "Fetched To-Do Item(s).")
+	slog.DebugContext(ctx, "Item(s):", items)
 	res.WriteHeader(http.StatusOK)
 }
 
