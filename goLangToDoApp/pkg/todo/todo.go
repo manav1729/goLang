@@ -11,99 +11,123 @@ import (
 
 var Statuses = []string{"not-started", "started", "completed"}
 
-func AddNewToDoItem(currentItems []Item, desc string) ([]Item, error) {
-	id := 1
-	itemNos := len(currentItems)
-	if itemNos > 0 {
-		id = currentItems[itemNos-1].ItemId + 1
+// NewToDoStore initializes a new ToDoStore
+func NewToDoStore(filePath string) (*ToDoStore, error) {
+	store := &ToDoStore{FilePath: filePath}
+	err := store.loadAllToDoItems()
+	if err != nil {
+		return nil, err
 	}
-
-	currentItems = append(currentItems, Item{id, desc, Statuses[0]})
-	return currentItems, nil
+	return store, nil
 }
 
-func UpdateToDoItem(currentItems []Item, id int, desc string, status string) ([]Item, error) {
+func (store *ToDoStore) AddNewToDoItem(desc string) error {
+	id := 1
+	itemNos := len(store.Items)
+	if itemNos > 0 {
+		id = store.Items[itemNos-1].ItemId + 1
+	}
+
+	store.Items = append(store.Items, Item{id, desc, Statuses[0]})
+	err := store.saveAllToDoItems()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (store *ToDoStore) UpdateToDoItem(id int, desc string, status string) error {
 	if status != "" && !slices.Contains(Statuses, status) {
 		msg := "status of To-Do Item is invalid"
-		return currentItems, errors.New(msg)
+		return errors.New(msg)
 	}
 
 	success := false
-	for index, item := range currentItems {
+	for index, item := range store.Items {
 		if item.ItemId == id {
 			if desc != "" {
-				currentItems[index].Description = desc
+				store.Items[index].Description = desc
 			}
 			if status != "" {
-				currentItems[index].Status = status
+				store.Items[index].Status = status
 			}
 			success = true
 		}
 	}
 	if !success {
 		msg := "To-Do Item failed to update"
-		return currentItems, errors.New(msg)
+		return errors.New(msg)
+	} else {
+		err := store.saveAllToDoItems()
+		if err != nil {
+			return err
+		}
 	}
-	return currentItems, nil
+	return nil
 }
 
-func DeleteToDoItem(currentItems []Item, id int) ([]Item, error) {
+func (store *ToDoStore) DeleteToDoItem(id int) error {
 	success := false
-	for index, item := range currentItems {
+	for index, item := range store.Items {
 		if item.ItemId == id {
-			currentItems = append(currentItems[:index], currentItems[index+1:]...)
+			store.Items = append(store.Items[:index], store.Items[index+1:]...)
 			success = true
 		}
 	}
 	if !success {
 		msg := "To-Do Item failed to deleted"
-		return currentItems, errors.New(msg)
+		return errors.New(msg)
+	} else {
+		err := store.saveAllToDoItems()
+		if err != nil {
+			return err
+		}
 	}
-	return currentItems, nil
+	return nil
 }
 
-func GetAllToDoItems(filename string) ([]Item, error) {
+func (store *ToDoStore) GetAllToDoItems() []Item {
+	return store.Items
+}
+
+func (store *ToDoStore) loadAllToDoItems() error {
 	// Open local json file
-	jsonFile, err1 := os.Open(filename)
+	jsonFile, err1 := os.Open(store.FilePath)
 	if err1 != nil {
-		msg := fmt.Sprintf("%s %s\n%s", "Error opening file.", filename, err1)
-		return nil, errors.New(msg)
+		msg := fmt.Sprintf("%s %s\n%s", "Error opening file.", store.FilePath, err1)
+		return errors.New(msg)
 	}
 
 	byteValue, err2 := ioutil.ReadAll(jsonFile)
 	if err2 != nil {
-		msg := fmt.Sprintf("%s %s\n%s", "Error reading file.", filename, err2)
-		return nil, errors.New(msg)
+		msg := fmt.Sprintf("%s %s\n%s", "Error reading file.", store.FilePath, err2)
+		return errors.New(msg)
 	}
 	defer jsonFile.Close()
 
 	if byteValue != nil {
 		// Parse the json file to ToDoItems
-		var items []Item
-		err3 := json.Unmarshal(byteValue, &items)
+		err3 := json.Unmarshal(byteValue, &store.Items)
 		if err3 != nil {
 			msg := fmt.Sprintf("%s\n%s", "Error Unmarshalling To-Do Item(s).", err3)
-			return nil, errors.New(msg)
-		}
-
-		if items != nil && len(items) > 0 {
-			return items, nil
+			return errors.New(msg)
 		}
 	}
-	return nil, nil
+	return nil
 }
 
-func SaveAllToDoItems(allItems []Item, filename string) error {
+func (store *ToDoStore) saveAllToDoItems() error {
 	// Open json file
-	data, err1 := json.MarshalIndent(allItems, "", "\t")
+	data, err1 := json.MarshalIndent(store.Items, "", "\t")
 	if err1 != nil {
 		msg := fmt.Sprintf("%s\n%s", "Error marshalling To-Do Item(s).", err1)
 		return errors.New(msg)
 	}
 
-	err2 := ioutil.WriteFile(filename, data, 0644)
+	err2 := ioutil.WriteFile(store.FilePath, data, 0644)
 	if err2 != nil {
-		msg := fmt.Sprintf("%s %s\n%s", "Error saving to file.", filename, err2)
+		msg := fmt.Sprintf("%s %s\n%s", "Error saving to file.", store.FilePath, err2)
 		return errors.New(msg)
 	}
 

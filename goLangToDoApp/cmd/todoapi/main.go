@@ -13,10 +13,18 @@ import (
 )
 
 var fileName string
+var store *todo.ToDoStore
 
 func main() {
 	ctx := base.Init()
 	fileName = base.DataFile
+
+	var err error
+	store, err = todo.NewToDoStore(fileName)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to load to-do data", "error", err)
+		return
+	}
 
 	slog.InfoContext(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListApi")
 
@@ -36,7 +44,7 @@ func main() {
 	}
 
 	slog.InfoContext(ctx, "Http Server Listening on port 8080")
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		slog.ErrorContext(ctx, "Http Server Listening error:", err)
 	}
@@ -64,19 +72,9 @@ func createFunc(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	items, _ := todo.GetAllToDoItems(fileName)
-
-	allItems, err := todo.AddNewToDoItem(items, createReq.Description)
+	err = store.AddNewToDoItem(createReq.Description)
 	if err != nil {
 		msg := fmt.Sprintf("%s/n%s", "Failed to create new To-Do Item.", err)
-		http.Error(res, msg, http.StatusInternalServerError)
-		slog.ErrorContext(ctx, msg)
-		return
-	}
-
-	err = todo.SaveAllToDoItems(allItems, fileName)
-	if err != nil {
-		msg := fmt.Sprintf("%s/n%s", "Failed to save created To-Do Item.", err)
 		http.Error(res, msg, http.StatusInternalServerError)
 		slog.ErrorContext(ctx, msg)
 		return
@@ -88,16 +86,10 @@ func createFunc(res http.ResponseWriter, req *http.Request) {
 
 func getFunc(res http.ResponseWriter, _ *http.Request) {
 	ctx := base.Init()
-	items, err := todo.GetAllToDoItems(fileName)
-	if err != nil {
-		msg := fmt.Sprintf("%s/n%s", "Failed to get To-Do Items.", err)
-		http.Error(res, msg, http.StatusInternalServerError)
-		slog.ErrorContext(ctx, msg)
-		return
-	}
+	items := store.GetAllToDoItems()
 
 	res.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(res).Encode(items)
+	err := json.NewEncoder(res).Encode(items)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to encode To-Do Items.")
 		return
@@ -127,18 +119,9 @@ func updateFunc(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	items, _ := todo.GetAllToDoItems(fileName)
-	allItems, err := todo.UpdateToDoItem(items, updateReq.ItemId, updateReq.Description, updateReq.Status)
+	err = store.UpdateToDoItem(updateReq.ItemId, updateReq.Description, updateReq.Status)
 	if err != nil {
 		msg := "Failed to update To-Do Item."
-		http.Error(res, msg, http.StatusInternalServerError)
-		slog.ErrorContext(ctx, msg)
-		return
-	}
-
-	err = todo.SaveAllToDoItems(allItems, fileName)
-	if err != nil {
-		msg := "Failed to Save To-Do Item(s)."
 		http.Error(res, msg, http.StatusInternalServerError)
 		slog.ErrorContext(ctx, msg)
 		return
@@ -166,20 +149,12 @@ func deleteFunc(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	items, _ := todo.GetAllToDoItems(fileName)
-	allItems, err := todo.DeleteToDoItem(items, id)
+	err = store.DeleteToDoItem(id)
 	if err != nil {
 		msg := "Failed to Delete To-Do Item."
 		http.Error(res, msg, http.StatusInternalServerError)
 		slog.ErrorContext(ctx, msg)
 		return
-	}
-
-	err = todo.SaveAllToDoItems(allItems, fileName)
-	if err != nil {
-		msg := "Failed to Save To-Do Item(s)."
-		http.Error(res, msg, http.StatusInternalServerError)
-		slog.ErrorContext(ctx, msg)
 	}
 
 	slog.InfoContext(ctx, "Deleted To-Do Item successfully.", "Id", id)

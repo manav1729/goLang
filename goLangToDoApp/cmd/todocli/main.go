@@ -28,7 +28,7 @@ func main() {
 	flag.Parse()
 
 	// Load All To-Do Items from file
-	items, err := todo.GetAllToDoItems(fileName)
+	store, err := todo.NewToDoStore(fileName)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to get item(s) of To-Do List:", err)
 	}
@@ -36,19 +36,19 @@ func main() {
 	switch {
 	case *add:
 		// Add a new To-Do Item
-		items, err = todo.AddNewToDoItem(items, *desc)
+		err = store.AddNewToDoItem(*desc)
 		if err != nil {
 			slog.ErrorContext(ctx, "Failed to add item to To-Do List:", err)
 		}
 	case *update && *id != 0:
 		// Update a To-Do Item
-		items, err = todo.UpdateToDoItem(items, *id, *desc, *status)
+		err = store.UpdateToDoItem(*id, *desc, *status)
 		if err != nil {
 			slog.ErrorContext(ctx, "Failed to update item to To-Do List:", err)
 		}
 	case *remove && *id != 0:
 		// Delete a To-Do Item
-		items, err = todo.DeleteToDoItem(items, *id)
+		err = store.DeleteToDoItem(*id)
 		if err != nil {
 			slog.ErrorContext(ctx, "Failed to remove item from To-Do List:", err)
 		}
@@ -57,13 +57,7 @@ func main() {
 	}
 
 	// Print All To-Do Item(s)
-	printToDoItems(ctx, items)
-
-	// Save All To-Do Items to file
-	err = todo.SaveAllToDoItems(items, fileName)
-	if err != nil {
-		slog.ErrorContext(ctx, "Failed to save item(s) of To-Do List:", err)
-	}
+	printToDoItems(ctx, store.GetAllToDoItems())
 
 	base.Exit(ctx)
 }

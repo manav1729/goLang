@@ -17,10 +17,18 @@ var (
 )
 
 var fileName string
+var store *todo.ToDoStore
 
 func main() {
 	ctx := base.Init()
 	fileName = base.DataFile
+
+	var err error
+	store, err = todo.NewToDoStore(fileName)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to load to-do data", "error", err)
+		return
+	}
 
 	slog.InfoContext(ctx, "Welcome to Manwendra's To-Do List Application.", "method", "ToDoListWeb")
 
@@ -37,7 +45,7 @@ func main() {
 	}
 
 	slog.InfoContext(ctx, "Http Server Listening on port 8081")
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		msg := fmt.Sprintf("%s/n %s", "Http Server Listening error.", err)
 		slog.ErrorContext(ctx, msg)
@@ -56,12 +64,6 @@ func listFunc(res http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	items, err := todo.GetAllToDoItems(fileName)
-	if err != nil {
-		msg := "Failed to load To-Do Items."
-		http.Error(res, msg, http.StatusInternalServerError)
-		slog.ErrorContext(ctx, msg)
-		return
-	}
+	items := store.GetAllToDoItems()
 	_ = tmpl.Execute(res, items)
 }
