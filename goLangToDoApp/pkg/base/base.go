@@ -38,18 +38,21 @@ func Init() context.Context {
 }
 
 func Exit(ctx context.Context) {
-	// Signal Channel listens for
+	// Signal channel listens for
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT)
 
 	// System Exit when signal received
-	go func() {
-		<-signalChannel
-		slog.InfoContext(ctx, "Received termination signal, shutting down...")
-		os.Exit(0)
-	}()
+	go systemExit(ctx, signalChannel)
 
 	// Infinite loop to keep the application running
 	slog.InfoContext(ctx, "Application is Running. Press Ctrl+C to exit.")
 	select {}
+}
+
+// Basic system exit go routine
+func systemExit(ctx context.Context, signalChannel chan os.Signal) {
+	<-signalChannel
+	slog.InfoContext(ctx, "Received termination signal, shutting down...")
+	os.Exit(0)
 }
