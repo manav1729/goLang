@@ -104,22 +104,23 @@ func updateFunc(res http.ResponseWriter, req *http.Request) {
 	ctx := base.Init()
 	var updateReq struct {
 		ItemId      int    `json:"id"`
-		Description string `json:"description"`
 		Status      string `json:"status"`
+		Description string `json:"description"`
 	}
 	err := json.NewDecoder(req.Body).Decode(&updateReq)
 	if err != nil || (updateReq.ItemId == 0 || (updateReq.Description == "" && updateReq.Status == "")) {
 		msg := "Invalid request body. Accepted payload: \n" +
 			"{\n" +
 			"\"id\" : <Task Id>,\n" +
-			"\"description\" : <Task Description>,\n" +
-			"\"status\" : <Task Status>\n}"
+			"\"status\" : <Task Status>,\n" +
+			"\"description\" : <Task Description>\n}"
+
 		http.Error(res, msg, http.StatusBadRequest)
 		slog.ErrorContext(ctx, msg)
 		return
 	}
 
-	err = store.UpdateToDoItem(updateReq.ItemId, updateReq.Description, updateReq.Status)
+	err = store.UpdateToDoItem(updateReq.ItemId, updateReq.Status, updateReq.Description)
 	if err != nil {
 		msg := "Failed to update To-Do Item."
 		http.Error(res, msg, http.StatusInternalServerError)

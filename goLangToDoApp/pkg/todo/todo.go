@@ -54,7 +54,7 @@ func (store *ToDoStore) AddNewToDoItem(desc string) error {
 	return nil
 }
 
-func (store *ToDoStore) UpdateToDoItem(id int, desc string, status string) error {
+func (store *ToDoStore) UpdateToDoItem(id int, status string, desc string) error {
 	if status != "" && !slices.Contains(Statuses, status) {
 		msg := "status of To-Do Item is invalid"
 		return errors.New(msg)
@@ -64,15 +64,15 @@ func (store *ToDoStore) UpdateToDoItem(id int, desc string, status string) error
 	store.commands <- func(items *[]Item, _ *int) {
 		for i := range *items {
 			if (*items)[i].ItemId == id {
-				if desc == "" {
-					desc = (*items)[i].Description
-				}
-
 				if status == "" {
 					status = (*items)[i].Status
 				}
 
-				(*items)[i] = Item{ItemId: id, Description: desc, Status: status}
+				if desc == "" {
+					desc = (*items)[i].Description
+				}
+
+				(*items)[i] = Item{ItemId: id, Status: status, Description: desc}
 				errChan <- nil
 				return
 			}
