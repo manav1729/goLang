@@ -5,78 +5,95 @@
     <title>About</title>
 </head>
 <body>
-    <h1>Welcome to Manwendra's To-Do List Application</h1>
-    <h2>GO Academy Static Content</h2>
+<h1>Welcome to Manwendra's To-Do List Application</h1>
+<h2>GO Academy Static Content</h2>
 
-    <p>
-        This project is to create a to-do app which allows users to create a list of to-do tasks. It is intended for you to use a range of different techniques and features of Golang and tasks followed from top to bottom, building up the application as you go. Don't be afraid to set aside your design at the end of a step if the next step would require massive refactor - it is often simpler to design an application from a clean page and copy in useful code.
-    </p>
-    <p>
-        A to-do item should include a description and a status of "not started", "started", or "completed". Users should be able to display a list of all to-do items including their statuses, and should be able to update a to-do item to change its status or delete it entirely. Feel free to add any additional functionality if you want.
-    </p>
-    <p>
-        1) Basic CLI application
-        <br>- Create a command line application that uses flags to accept a to-do item adds it to an empty list of to-do items and prints the list to console
-        <br>- After printing the list of to-do items, save them to a file on disk
-        <br>- When the application starts, load all to-do items from disk before adding new item
-        <br>- Allow the user to update the description of a to-do item or delete it
-    </p>
-    <p>
-        2) Advanced functionality
-        <br>- Use the "log/slog" structured logging package to log errors and when data is saved to disk
-        <br>- Use the "context" package to add a TraceID to enable traceability of calls through the solution by adding it to all logs
-        <br>- Separate the core todo store logic into a different package/module to main/CLI code
-        <br>- Write unit tests to cover usefully testable code
-        <br>- Use the "os/signal" package and ensure that the application only exits when it receives the interrupt signal (ctrl+c)
-    </p>
-    <p>
-        3) API
-        <br>- Use ServeMux in the "net/http" package to expose json http endpoints: "/create", "/get", "/update", and "/delete"
-        <br>- Add a middleware to create a context with TraceID
-    </p>
-    <p>
-        4) Web page
-        <br>- Use "http.FileServer" to serve a static page to a new "/about" endpoint
-        <br>- Use "html/template" to serve a dynamic page containing a list of all to-do items to a new "/list" endpoint
-    </p>
-    <p>
-        5) Concurrency
-        <br>- Use the Actor/Communicating Sequential Processes (CSP) pattern to support concurrent reads and concurrent safe write
-        <br>- Use Parallel tests to validate that the solution is concurrent safe
-    </p>
-    <p>
-        Further work:
-        <br>These tasks are designed to provide you with exercises beyond the end of the the academy course and are more complicated/involved, with less explanation as to how to execute them:
+<p>
+    This project is to create a to-do app which allows users to create a list of to-do tasks. It is intended for you to
+    use a range of different techniques and features of Golang and tasks followed from top to bottom, building up the
+    application as you go. Don't be afraid to set aside your design at the end of a step if the next step would require
+    massive refactor - it is often simpler to design an application from a clean page and copy in useful code.
+</p>
+<p>
+    A to-do item should include a description and a status of "not started", "started", or "completed". Users should be
+    able to display a list of all to-do items including their statuses, and should be able to update a to-do item to
+    change its status or delete it entirely. Feel free to add any additional functionality if you want.
+</p>
+<p>
+    1) Basic CLI application
+    <br>- Create a command line application that uses flags to accept a to-do item adds it to an empty list of to-do
+    items and prints the list to console
+    <br>- After printing the list of to-do items, save them to a file on disk
+    <br>- When the application starts, load all to-do items from disk before adding new item
+    <br>- Allow the user to update the description of a to-do item or delete it
+</p>
+<p>
+    2) Advanced functionality
+    <br>- Use the "log/slog" structured logging package to log errors and when data is saved to disk
+    <br>- Use the "context" package to add a TraceID to enable traceability of calls through the solution by adding it
+    to all logs
+    <br>- Separate the core todo store logic into a different package/module to main/CLI code
+    <br>- Write unit tests to cover usefully testable code
+    <br>- Use the "os/signal" package and ensure that the application only exits when it receives the interrupt signal
+    (ctrl+c)
+</p>
+<p>
+    3) API
+    <br>- Use ServeMux in the "net/http" package to expose json http endpoints: "/create", "/get", "/update", and
+    "/delete"
+    <br>- Add a middleware to create a context with TraceID
+</p>
+<p>
+    4) Web page
+    <br>- Use "http.FileServer" to serve a static page to a new "/about" endpoint
+    <br>- Use "html/template" to serve a dynamic page containing a list of all to-do items to a new "/list" endpoint
+</p>
+<p>
+    5) Concurrency
+    <br>- Use the Actor/Communicating Sequential Processes (CSP) pattern to support concurrent reads and concurrent safe
+    write
+    <br>- Use Parallel tests to validate that the solution is concurrent safe
+</p>
+<p>
+    Further work:
+    <br>These tasks are designed to provide you with exercises beyond the end of the the academy course and are more
+    complicated/involved, with less explanation as to how to execute them:
 
-        <br>- Repl (Read-eval-print loop)
-        <br>When the application runs it should ask the user to input text into the console to create, read, update, or delete list items in a loop.
+    <br>- Repl (Read-eval-print loop)
+    <br>When the application runs it should ask the user to input text into the console to create, read, update, or
+    delete list items in a loop.
 
-        <br>- Multiple startups:
-        <br>Separate the cli, repl, and api functionality into separate main packages in different modules so that the application can be run as a cli OR a repl OR an api OR all of them together.
+    <br>- Multiple startups:
+    <br>Separate the cli, repl, and api functionality into separate main packages in different modules so that the
+    application can be run as a cli OR a repl OR an api OR all of them together.
 
-        <br>- Multi User
-        <br>The API should include a user ID and support multiple users, each with their own to-do list.
+    <br>- Multi User
+    <br>The API should include a user ID and support multiple users, each with their own to-do list.
 
-        <br>- No interfaces or receivers
-        <br>Remove all interfaces or receiver functions from your application and instead use the static-singleton pattern.
+    <br>- No interfaces or receivers
+    <br>Remove all interfaces or receiver functions from your application and instead use the static-singleton pattern.
 
-        <br>- Graceful shutdown
-        <br>When the interrupt signal is sent to the application, it stops accepting incoming http requests and finishes resolving all open http requests before shutting down.
+    <br>- Graceful shutdown
+    <br>When the interrupt signal is sent to the application, it stops accepting incoming http requests and finishes
+    resolving all open http requests before shutting down.
 
-        <br>- Publish modules
-        <br>Ensure the core todo store logic is in a self contain module and publish V1 to github, then use the published module in the application entry points rather than local one.
+    <br>- Publish modules
+    <br>Ensure the core todo store logic is in a self contain module and publish V1 to github, then use the published
+    module in the application entry points rather than local one.
 
-        <br>- Benchmark
-        <br>Use benchmark unit tests to determine the performance of your application. Run a separate application to bombard your code with requests and evaluate the performance.
+    <br>- Benchmark
+    <br>Use benchmark unit tests to determine the performance of your application. Run a separate application to bombard
+    your code with requests and evaluate the performance.
 
-        <br>- pprof
-        <br>Use the pprof utility to profile application performance.
+    <br>- pprof
+    <br>Use the pprof utility to profile application performance.
 
-        <br>- Sharding
-        <br>Split the todo store "back end" module into a separate executable to the "front end" api/cli/repl/web server, run multiple instances of the back end and distribute traffic from the front end using ring hashing.
+    <br>- Sharding
+    <br>Split the todo store "back end" module into a separate executable to the "front end" api/cli/repl/web server,
+    run multiple instances of the back end and distribute traffic from the front end using ring hashing.
 
-        <br>- GRPC
-        <br>Enable communication between front end and back end with GRPC.
-    </p>
+    <br>- GRPC
+    <br>Enable communication between front end and back end with GRPC.
+</p>
 </body>
 </html>

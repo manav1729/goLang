@@ -49,7 +49,7 @@ func main() {
 		slog.ErrorContext(ctx, "Http Server Listening error:", err)
 	}
 
-	base.Exit(ctx)
+	base.Exit(ctx, store)
 }
 
 func createMiddleware(ctx context.Context, next http.Handler) http.Handler {

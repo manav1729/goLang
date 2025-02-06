@@ -59,7 +59,7 @@ func main() {
 	// Print All To-Do Item(s)
 	printToDoItems(ctx, store.GetAllToDoItems())
 
-	base.Exit(ctx)
+	base.Exit(ctx, store)
 }
 
 // private methods

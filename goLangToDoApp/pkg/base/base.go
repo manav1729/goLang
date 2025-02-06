@@ -2,7 +2,9 @@ package base
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
+	"goLangToDoApp/pkg/todo"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -37,13 +39,13 @@ func Init() context.Context {
 	return ctx
 }
 
-func Exit(ctx context.Context) {
+func Exit(ctx context.Context, store *todo.ToDoStore) {
 	// Signal channel listens for
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT)
 
 	// System Exit when signal received
-	go systemExit(ctx, signalChannel)
+	go systemExit(ctx, store, signalChannel)
 
 	// Infinite loop to keep the application running
 	slog.InfoContext(ctx, "Application is Running. Press Ctrl+C to exit.")
@@ -51,8 +53,15 @@ func Exit(ctx context.Context) {
 }
 
 // Basic system exit go routine
-func systemExit(ctx context.Context, signalChannel chan os.Signal) {
+func systemExit(ctx context.Context, store *todo.ToDoStore, signalChannel chan os.Signal) {
 	<-signalChannel
 	slog.InfoContext(ctx, "Received termination signal, shutting down...")
+	err := store.SaveAll()
+	if err != nil {
+		slog.ErrorContext(ctx, fmt.Sprintf("Failed to save the ToDo store. %s", err))
+	} else {
+		slog.InfoContext(ctx, "Saved the ToDo store")
+	}
+
 	os.Exit(0)
 }
