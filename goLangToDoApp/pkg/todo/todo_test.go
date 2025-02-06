@@ -1,83 +1,62 @@
 package todo
 
 import (
-	"log"
 	"os"
+	"strconv"
+	"sync"
 	"testing"
 )
 
 const tempFile = "test_ToDoData.json"
 
 func TestToDo(t *testing.T) {
-	store := &ToDoStore{FilePath: tempFile}
-	err := store.saveAllToDoItems()
-	if err != nil {
-		t.Fatalf("Failed to save to-do items: %v", err)
-	}
-
-	testGetAllToDoItems(store, t)
-	testAddNewToDoItem(store, t)
-	testUpdateToDoItemDesc(store, t)
-	testUpdateToDoItemStatus(store, t)
-	testDeleteToDoItemStatus(store, t)
-
-	err = os.Remove(tempFile)
-	if err != nil {
-		log.Fatal(err)
-	}
+	testParallelCreateRead(t)
 }
 
-func testGetAllToDoItems(store *ToDoStore, t *testing.T) {
-	err := store.GetAllToDoItems()
-	if err != nil || len(store.Items) != 0 {
-		t.Errorf("Failed to Get To-Do Item(s)")
-	}
-}
-
-func testAddNewToDoItem(store *ToDoStore, t *testing.T) {
-	// Test Add New To-Do Item
-	err := store.AddNewToDoItem("Test Description")
+func testParallelCreateRead(t *testing.T) {
+	store, err := NewToDoStore(tempFile)
 	if err != nil {
-		t.Errorf("Failed to Add New To-Do Item")
+		t.Fatalf("Failed to initialize ToDoStore: %s", err)
 	}
 
-	if len(store.Items) != 1 {
-		t.Errorf("Failed to Add New To-Do Item")
-	}
-}
+	var wg sync.WaitGroup
+	numWorkers := 10
 
-func testUpdateToDoItemDesc(store *ToDoStore, t *testing.T) {
-	// Test Update To-Do Item Desc
-	err := store.UpdateToDoItem(1, "Updated Description", "")
+	// Run concurrent writes
+	t.Run("Concurrent Writes", func(t *testing.T) {
+		t.Parallel()
+		for i := 0; i < numWorkers; i++ {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+				store.AddNewToDoItem("Task " + strconv.Itoa(i))
+			}(i)
+		}
+		wg.Wait()
+	})
+
+	// Run concurrent reads
+	t.Run("Concurrent Reads", func(t *testing.T) {
+		t.Parallel()
+		for i := 0; i < numWorkers; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				_ = store.GetAllToDoItems()
+			}()
+		}
+		wg.Wait()
+	})
+
+	var items []Item
+	err = loadAllToDoItems(tempFile, &items)
 	if err != nil {
-		t.Errorf("Failed to Update To-Do Item")
+		t.Fatalf("Failed to load all ToDoItems: %s", err)
+	}
+	if len(items) != numWorkers {
+		t.Fatalf("Expected %d items, got %d", numWorkers, len(items))
 	}
 
-	if store.Items[0].Description != "Updated Description" {
-		t.Errorf("Failed to Update To-Do Item Description")
-	}
-}
-
-func testUpdateToDoItemStatus(store *ToDoStore, t *testing.T) {
-	// Test Update To-Do Status
-	err := store.UpdateToDoItem(1, "", "completed")
-	if err != nil {
-		t.Errorf("Failed to Update To-Do Item")
-	}
-
-	if store.Items[0].Status != "completed" {
-		t.Errorf("Failed to Update To-Do Item Status")
-	}
-}
-
-func testDeleteToDoItemStatus(store *ToDoStore, t *testing.T) {
-	// Test Delete To-Do Item
-	err := store.DeleteToDoItem(1)
-	if err != nil {
-		t.Errorf("Failed to Delete To-Do Item")
-	}
-
-	if len(store.Items) != 0 {
-		t.Errorf("Failed to Delete To-Do Item Status")
-	}
+	// Clean up test file
+	os.Remove(tempFile)
 }

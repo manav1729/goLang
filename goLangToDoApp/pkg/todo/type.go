@@ -7,6 +7,6 @@ type Item struct {
 }
 
 type ToDoStore struct {
-	FilePath string
-	Items    []Item
+	filePath string
+	commands chan func(*[]Item, *int)
 }

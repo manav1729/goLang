@@ -30,7 +30,7 @@ func main() {
 	// Load All To-Do Items from file
 	store, err := todo.NewToDoStore(fileName)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to get item(s) of To-Do List:", err)
+		slog.ErrorContext(ctx, "Failed to get item(s) of To-Do List:", "error", err)
 	}
 
 	switch {
@@ -38,19 +38,19 @@ func main() {
 		// Add a new To-Do Item
 		err = store.AddNewToDoItem(*desc)
 		if err != nil {
-			slog.ErrorContext(ctx, "Failed to add item to To-Do List:", err)
+			slog.ErrorContext(ctx, "Failed to add item to To-Do List:", "error", err)
 		}
 	case *update && *id != 0:
 		// Update a To-Do Item
 		err = store.UpdateToDoItem(*id, *desc, *status)
 		if err != nil {
-			slog.ErrorContext(ctx, "Failed to update item to To-Do List:", err)
+			slog.ErrorContext(ctx, "Failed to update item to To-Do List:", "error", err)
 		}
 	case *remove && *id != 0:
 		// Delete a To-Do Item
 		err = store.DeleteToDoItem(*id)
 		if err != nil {
-			slog.ErrorContext(ctx, "Failed to remove item from To-Do List:", err)
+			slog.ErrorContext(ctx, "Failed to remove item from To-Do List:", "error", err)
 		}
 	default:
 		printFlagInstructions()
