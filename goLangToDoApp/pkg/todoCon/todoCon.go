@@ -107,22 +107,6 @@ func (store *ToDoStore) GetAllToDoItems() []Item {
 	return <-response
 }
 
-func (store *ToDoStore) SaveAll() error {
-	// Open json file
-	data, err1 := json.MarshalIndent(store.GetAllToDoItems(), "", "\t")
-	if err1 != nil {
-		msg := fmt.Sprintf("%s %s", "Error marshalling To-Do Item(s).", err1)
-		return errors.New(msg)
-	}
-
-	err2 := ioutil.WriteFile(store.filePath, data, 0644)
-	if err2 != nil {
-		msg := fmt.Sprintf("%s %s %s", "Error saving to file.", store.filePath, err2)
-		return errors.New(msg)
-	}
-	return nil
-}
-
 func loadAllToDoItems(filePath string, items *[]Item) error {
 	byteValue, err1 := ioutil.ReadFile(filePath)
 	if err1 != nil {
