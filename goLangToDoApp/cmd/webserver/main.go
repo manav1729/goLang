@@ -51,7 +51,7 @@ func main() {
 		slog.ErrorContext(ctx, msg)
 	}
 
-	base.Exit(ctx, store)
+	base.Exit(ctx)
 }
 
 func listFunc(res http.ResponseWriter, _ *http.Request) {

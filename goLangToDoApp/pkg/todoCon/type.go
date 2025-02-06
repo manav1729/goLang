@@ -1,4 +1,4 @@
-package todo
+package todoCon
 
 type Item struct {
 	ItemId      int    `json:"id"`
@@ -8,5 +8,5 @@ type Item struct {
 
 type ToDoStore struct {
 	filePath string
-	items    []Item
+	commands chan func(*[]Item, *int)
 }

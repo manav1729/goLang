@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"goLangToDoApp/pkg/base"
-	"goLangToDoApp/pkg/todo"
+	todo "goLangToDoApp/pkg/todoCon"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -49,7 +49,7 @@ func main() {
 		slog.ErrorContext(ctx, "Http Server Listening error:", err)
 	}
 
-	base.Exit(ctx, store)
+	base.Exit(ctx)
 }
 
 func createMiddleware(ctx context.Context, next http.Handler) http.Handler {

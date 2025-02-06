@@ -82,5 +82,5 @@ func main() {
 		slog.InfoContext(ctx, "No To-Do Item(s) in the List.")
 	}
 
-	base.Exit(ctx, store)
+	base.Exit(ctx)
 }
