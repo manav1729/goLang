@@ -42,7 +42,7 @@ func Exit(ctx context.Context) {
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT)
 
-	// System Exit when signal received
+	// System Exit go routine
 	go systemExit(ctx, signalChannel)
 
 	// Infinite loop to keep the application running
