@@ -19,7 +19,7 @@ func TestToDo(t *testing.T) {
 	testAddNewToDoItem(store, t)
 	testUpdateToDoItemDesc(store, t)
 	testUpdateToDoItemStatus(store, t)
-	testDeleteToDoItemStatus(store, t)
+	testDeleteToDoItem(store, t)
 
 	err = os.Remove(tempFile)
 	if err != nil {
@@ -70,7 +70,7 @@ func testUpdateToDoItemStatus(store *ToDoStore, t *testing.T) {
 	}
 }
 
-func testDeleteToDoItemStatus(store *ToDoStore, t *testing.T) {
+func testDeleteToDoItem(store *ToDoStore, t *testing.T) {
 	// Test Delete To-Do Item
 	err := store.DeleteToDoItem(1)
 	if err != nil {

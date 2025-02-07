@@ -69,18 +69,18 @@ func (store *ToDoStore) GetAllToDoItems() []Item {
 }
 
 func (store *ToDoStore) loadAllToDoItems() error {
-	byteValue, err1 := ioutil.ReadFile(store.filePath)
-	if err1 != nil {
-		if os.IsNotExist(err1) {
+	byteValue, err := ioutil.ReadFile(store.filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
 			return nil
 		}
-		return fmt.Errorf("error reading file %s: %w", store.filePath, err1)
+		return fmt.Errorf("error reading file %s: %w", store.filePath, err)
 	}
 
 	if len(byteValue) > 0 {
-		err2 := json.Unmarshal(byteValue, &store.items)
-		if err2 != nil {
-			return fmt.Errorf("error unmarshalling To-Do items: %w", err2)
+		err := json.Unmarshal(byteValue, &store.items)
+		if err != nil {
+			return fmt.Errorf("error unmarshalling To-Do items: %w", err)
 		}
 	}
 	return nil
@@ -88,14 +88,14 @@ func (store *ToDoStore) loadAllToDoItems() error {
 
 func (store *ToDoStore) saveAllToDoItems() error {
 	// Open json file
-	data, err1 := json.MarshalIndent(store.items, "", "\t")
-	if err1 != nil {
-		return fmt.Errorf("%s\n%s", "Error marshalling To-Do Item(s).", err1)
+	data, err := json.MarshalIndent(store.items, "", "\t")
+	if err != nil {
+		return fmt.Errorf("%s\n%s", "Error marshalling To-Do Item(s).", err)
 	}
 
-	err2 := ioutil.WriteFile(store.filePath, data, 0644)
-	if err2 != nil {
-		return fmt.Errorf("%s %s\n%s", "Error saving to file.", store.filePath, err2)
+	err = ioutil.WriteFile(store.filePath, data, 0644)
+	if err != nil {
+		return fmt.Errorf("%s %s\n%s", "Error saving to file.", store.filePath, err)
 	}
 
 	return nil
