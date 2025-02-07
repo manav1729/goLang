@@ -13,7 +13,9 @@ var Statuses = []string{"not-started", "started", "completed"}
 
 // NewToDoStore initializes a new ToDoStore
 func NewToDoStore(filePath string) (*ToDoStore, error) {
-	store := &ToDoStore{filePath: filePath}
+	store := &ToDoStore{
+		filePath: filePath,
+	}
 	err := store.loadAllToDoItems()
 	if err != nil {
 		return nil, err
@@ -29,21 +31,14 @@ func (store *ToDoStore) AddNewToDoItem(desc string) error {
 	}
 
 	store.items = append(store.items, Item{id, Statuses[0], desc})
-	err := store.saveAllToDoItems()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return store.saveAllToDoItems()
 }
 
 func (store *ToDoStore) UpdateToDoItem(id int, status string, desc string) error {
 	if status != "" && !slices.Contains(Statuses, status) {
-		msg := "status of To-Do Item is invalid"
-		return errors.New(msg)
+		return errors.New("status of To-Do Item is invalid")
 	}
 
-	success := false
 	for index, item := range store.items {
 		if item.ItemId == id {
 			if status != "" {
@@ -52,39 +47,21 @@ func (store *ToDoStore) UpdateToDoItem(id int, status string, desc string) error
 			if desc != "" {
 				store.items[index].Description = desc
 			}
-			success = true
+			return store.saveAllToDoItems()
 		}
 	}
-	if !success {
-		msg := "To-Do Item failed to update"
-		return errors.New(msg)
-	} else {
-		err := store.saveAllToDoItems()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return errors.New("To-Do Item failed to update")
 }
 
 func (store *ToDoStore) DeleteToDoItem(id int) error {
-	success := false
 	for index, item := range store.items {
 		if item.ItemId == id {
 			store.items = append(store.items[:index], store.items[index+1:]...)
-			success = true
+			return store.saveAllToDoItems()
 		}
+
 	}
-	if !success {
-		msg := "To-Do Item failed to deleted"
-		return errors.New(msg)
-	} else {
-		err := store.saveAllToDoItems()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return errors.New("To-Do Item failed to deleted")
 }
 
 func (store *ToDoStore) GetAllToDoItems() []Item {
@@ -92,26 +69,18 @@ func (store *ToDoStore) GetAllToDoItems() []Item {
 }
 
 func (store *ToDoStore) loadAllToDoItems() error {
-	// Open local json file
-	jsonFile, err1 := os.Open(store.filePath)
+	byteValue, err1 := ioutil.ReadFile(store.filePath)
 	if err1 != nil {
-		msg := fmt.Sprintf("%s %s\n%s", "Error opening file.", store.filePath, err1)
-		return errors.New(msg)
+		if os.IsNotExist(err1) {
+			return nil
+		}
+		return fmt.Errorf("error reading file %s: %w", store.filePath, err1)
 	}
 
-	byteValue, err2 := ioutil.ReadAll(jsonFile)
-	if err2 != nil {
-		msg := fmt.Sprintf("%s %s\n%s", "Error reading file.", store.filePath, err2)
-		return errors.New(msg)
-	}
-	defer jsonFile.Close()
-
-	if byteValue != nil {
-		// Parse the json file to ToDoItems
-		err3 := json.Unmarshal(byteValue, &store.items)
-		if err3 != nil {
-			msg := fmt.Sprintf("%s\n%s", "Error Unmarshalling To-Do Item(s).", err3)
-			return errors.New(msg)
+	if len(byteValue) > 0 {
+		err2 := json.Unmarshal(byteValue, &store.items)
+		if err2 != nil {
+			return fmt.Errorf("error unmarshalling To-Do items: %w", err2)
 		}
 	}
 	return nil
@@ -121,14 +90,12 @@ func (store *ToDoStore) saveAllToDoItems() error {
 	// Open json file
 	data, err1 := json.MarshalIndent(store.items, "", "\t")
 	if err1 != nil {
-		msg := fmt.Sprintf("%s\n%s", "Error marshalling To-Do Item(s).", err1)
-		return errors.New(msg)
+		return fmt.Errorf("%s\n%s", "Error marshalling To-Do Item(s).", err1)
 	}
 
 	err2 := ioutil.WriteFile(store.filePath, data, 0644)
 	if err2 != nil {
-		msg := fmt.Sprintf("%s %s\n%s", "Error saving to file.", store.filePath, err2)
-		return errors.New(msg)
+		return fmt.Errorf("%s %s\n%s", "Error saving to file.", store.filePath, err2)
 	}
 
 	return nil

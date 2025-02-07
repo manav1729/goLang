@@ -6,7 +6,17 @@ type Item struct {
 	Description string `json:"description"`
 }
 
+type request struct {
+	action string
+	item   Item
+	id     int
+	status string
+	desc   string
+	resp   chan error
+}
+
 type ToDoStore struct {
 	filePath string
-	commands chan func(*[]Item, *int)
+	items    []Item
+	requests chan request
 }
