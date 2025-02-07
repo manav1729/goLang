@@ -86,10 +86,15 @@ func createFunc(res http.ResponseWriter, req *http.Request) {
 
 func getFunc(res http.ResponseWriter, _ *http.Request) {
 	ctx := base.Init()
-	items := store.GetAllToDoItems()
+	items, err := store.GetAllToDoItems()
+	if err != nil {
+		msg := fmt.Sprintf("%s/n%s", "Failed to get all To-Do Items.", err)
+		http.Error(res, msg, http.StatusBadRequest)
+		slog.ErrorContext(ctx, msg)
+	}
 
 	res.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(res).Encode(items)
+	err = json.NewEncoder(res).Encode(items)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to encode To-Do Items.")
 		return

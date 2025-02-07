@@ -30,6 +30,8 @@ func NewToDoStore(filePath string) (*ToDoStore, error) {
 func (store *ToDoStore) processRequests() {
 	for req := range store.requests {
 		switch req.action {
+		case "get":
+			req.resp <- store.get()
 		case "add":
 			req.resp <- store.add(req.desc)
 		case "update":
@@ -38,6 +40,10 @@ func (store *ToDoStore) processRequests() {
 			req.resp <- store.delete(req.id)
 		}
 	}
+}
+
+func (store *ToDoStore) get() error {
+	return store.loadAllToDoItems()
 }
 
 func (store *ToDoStore) add(desc string) error {
@@ -79,8 +85,13 @@ func (store *ToDoStore) delete(id int) error {
 	return errors.New("To-Do Item failed to delete")
 }
 
-func (store *ToDoStore) GetAllToDoItems() []Item {
-	return store.items
+func (store *ToDoStore) GetAllToDoItems() ([]Item, error) {
+	resp := make(chan error)
+	store.requests <- request{
+		action: "get",
+		resp:   resp,
+	}
+	return store.items, <-resp
 }
 
 func (store *ToDoStore) AddNewToDoItem(desc string) error {
